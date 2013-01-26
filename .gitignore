@@ -6,5 +6,6 @@ _UpgradeReport_Files
 Backup
 UpgradeLog.*
 
-obj
+**/bin/*
+**/obj/*
 *.suo
