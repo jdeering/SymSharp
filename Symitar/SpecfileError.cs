@@ -37,19 +37,21 @@ namespace Symitar
         }
 
         public int InstallSize { get; set; }
+        public bool InvalidInstall { get; set; }
 
         public bool FailedCheck
         {
-            get { return _errorLine > 0; }
+            get { return InvalidInstall || _errorLine > 0; }
         }
 
-        public SpecfileError(SymFile specfile, string fileError, string message, int row, int col)
+        public SpecfileError(SymFile specfile, string fileError, string message, int line, int col)
         {
             _sourceFile = specfile;
             _fileError = fileError;
             _errorMessage = message;
-            _errorLine = row;
+            _errorLine = line;
             _errorColumn = col;
+            InvalidInstall = false;
         }
 
         public static SpecfileError None()
@@ -60,8 +62,14 @@ namespace Symitar
 
         public static SpecfileError None(int size)
         {
+            if(size < 0)
+                throw new ArgumentOutOfRangeException("size", "Specfile install size cannot be less than 0.");
+
             SpecfileError ret = new SpecfileError(null, "", "", 0, 0);
             ret.InstallSize = size;
+
+            if (size == 0) ret.InvalidInstall = true;
+
             return ret;
         }
     }
