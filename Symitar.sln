@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Symitar", "Symitar.csproj", "{3EC60B99-DCC6-4C15-B14C-DD49B1DFD215}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Symitar.Tests", "..\Symitar.Tests\Symitar.Tests.csproj", "{136E75CA-7AA6-4486-B6EE-7970E5C378C4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -13,6 +15,10 @@ Global
 		{3EC60B99-DCC6-4C15-B14C-DD49B1DFD215}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3EC60B99-DCC6-4C15-B14C-DD49B1DFD215}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3EC60B99-DCC6-4C15-B14C-DD49B1DFD215}.Release|Any CPU.Build.0 = Release|Any CPU
+		{136E75CA-7AA6-4486-B6EE-7970E5C378C4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{136E75CA-7AA6-4486-B6EE-7970E5C378C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{136E75CA-7AA6-4486-B6EE-7970E5C378C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{136E75CA-7AA6-4486-B6EE-7970E5C378C4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
