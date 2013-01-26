@@ -800,7 +800,7 @@ namespace Symitar
     //------------------------------------------------------------------------
     public void FileWrite(SymFile file, string content) { FileWrite(file.name, file.type, content); }
     //========================================================================
-    public RepErr FileCheck(SymFile file)
+    public SpecfileError FileCheck(SymFile file)
     {  
       if(file.type != SymFile.Type.REPGEN)
         throw new Exception("Cannot Check a "+file.TypeString()+" File");
@@ -818,7 +818,7 @@ namespace Symitar
       if(cmd.GetParam("Action")=="NoError")
       {
         ReadCommand();
-        return RepErr.None();
+        return SpecfileError.None();
       }
       
       int errRow=0, errCol=0;
@@ -840,13 +840,13 @@ namespace Symitar
         }
         ReadCommand();
 
-        return new RepErr(file, errFile, errText, errRow, errCol);
+        return new SpecfileError(file, errFile, errText, errRow, errCol);
       }
       
       throw new Exception("Unknown Checking Error");
     }
     //========================================================================
-    public RepErr FileInstall(SymFile file)
+    public SpecfileError FileInstall(SymFile file)
     {
       if(file.type != SymFile.Type.REPGEN)
         throw new Exception("Cannot Install a "+file.TypeString()+" File");
@@ -867,7 +867,7 @@ namespace Symitar
         ReadCommand();
         Write("1\r");
         ReadCommand(); ReadCommand();
-        return RepErr.None(int.Parse(cmd.GetParam("Size").Replace(",","")));
+        return SpecfileError.None(int.Parse(cmd.GetParam("Size").Replace(",","")));
       }
 
       int errRow = 0, errCol = 0;
@@ -889,7 +889,7 @@ namespace Symitar
         }
         ReadCommand();
 
-        return new RepErr(file, errFile, errText, errRow, errCol);
+        return new SpecfileError(file, errFile, errText, errRow, errCol);
       }
       
       throw new Exception("Unknown Install Error");
