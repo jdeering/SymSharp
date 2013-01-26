@@ -10,3 +10,4 @@ UpgradeLog.*
 **/obj/*
 *.suo
 *.user
+*.DotSettings
