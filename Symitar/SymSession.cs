@@ -118,10 +118,10 @@ namespace Symitar
     //------------------------------------------------------------------------
     private void Write(byte[] buff, int timeout)    { Write(buff, 0, buff.Length,     timeout); }
     private void Write(string str , int timeout)    { Write(EncodeString(str),        timeout); }
-    private void Write(SymCommand cmd, int timeout) { Write(cmd.Packet(),             timeout); }
+    private void Write(SymCommand cmd, int timeout) { Write(cmd.ToString(),             timeout); }
     private void Write(byte[] buff)                 { Write(buff,              defaultTimeout); }
     private void Write(string str)                  { Write(EncodeString(str), defaultTimeout); }
-    private void Write(SymCommand cmd)              { Write(cmd.Packet(),      defaultTimeout); }
+    private void Write(SymCommand cmd)              { Write(cmd.ToString(),      defaultTimeout); }
     //========================================================================
     private void WakeUp() { try{Write(new SymCommand("WakeUp"), 1000);} catch(Exception){}  }
     //========================================================================
@@ -219,8 +219,8 @@ namespace Symitar
       string data = ReadUntilString(new byte[] {0xFC}, timeout);
       
       SymCommand cmd = SymCommand.Parse(data.Substring(0, data.Length-1));
-      if((cmd.command == "MsgDlg") && (cmd.HasParam("Text")))
-        if(cmd.parameters["Text"].IndexOf("From PID") != -1)
+      if((cmd.Command == "MsgDlg") && (cmd.HasParameter("Text")))
+        if(cmd.Parameters["Text"].IndexOf("From PID") != -1)
           cmd = ReadCommand(timeout);
       return cmd;
     }
@@ -350,7 +350,7 @@ namespace Symitar
     private void KeepAlive()
     {
       int oto = stream.WriteTimeout;
-      byte[] wakeCmd = EncodeString((new SymCommand("WakeUp")).Packet());
+      byte[] wakeCmd = EncodeString((new SymCommand("WakeUp")).ToString());
 
       try
       {
@@ -552,16 +552,16 @@ namespace Symitar
           ReadUntil("$ ", 1000);
           Write("sym "+sym+'\r', 1000);
           cmd = ReadCommand(2000);
-          while(cmd.command != "Input")
+          while(cmd.Command != "Input")
           {
-            if(cmd.command == "SymLogonError")
+            if(cmd.Command == "SymLogonError")
               if(cmd.GetParam("Text").IndexOf("Too Many Invalid Password Attempts") > -1)
               {
                 error = "Too Many Invalid Password Attempts";
                 return false;
               }
             cmd = ReadCommand(2000);
-            if((cmd.command == "Input") && (cmd.GetParam("HelpCode") == "10025"))
+            if((cmd.Command == "Input") && (cmd.GetParam("HelpCode") == "10025"))
             {
               Write("$WinHostSync$\r");
               cmd = ReadCommand(2000);
@@ -570,13 +570,13 @@ namespace Symitar
         }
         Write(symid+'\r', 1000);
         cmd = ReadCommand(2000);
-        if(cmd.command == "SymLogonInvalidUser")
+        if(cmd.Command == "SymLogonInvalidUser")
         {
           error = "Invalid Sym User";
           Write("\r", 1000); ReadCommand(2000);
           return false;
         }
-        if(cmd.command == "SymLogonError")
+        if(cmd.Command == "SymLogonError")
           if(cmd.GetParam("Text").IndexOf("Too Many Invalid Password Attempts") > -1)
           {
             error = "Too Many Invalid Password Attempts";
@@ -611,19 +611,19 @@ namespace Symitar
       List<SymFile> files = new List<SymFile>();
       
       SymCommand cmd = new SymCommand("File");
-      cmd.SetParam("Type"  , SymFile.TypeDescriptor[(int)type]);
-      cmd.SetParam("Name"  , pattern);
-      cmd.SetParam("Action", "List");
+      cmd.Set("Type"  , SymFile.TypeDescriptor[(int)type]);
+      cmd.Set("Name"  , pattern);
+      cmd.Set("Action", "List");
       Write(cmd);
       
       while(true)
       {
         cmd = ReadCommand(2000);
-        if(cmd.HasParam("Status"))
+        if(cmd.HasParameter("Status"))
           break;
-        if(cmd.HasParam("Name"))
+        if(cmd.HasParameter("Name"))
           files.Add(new SymFile(server, sym, cmd.GetParam("Name"), cmd.GetParam("Date"), cmd.GetParam("Time"), int.Parse(cmd.GetParam("Size")), type));
-        if(cmd.HasParam("Done"))
+        if(cmd.HasParameter("Done"))
           break;
       }
       return files;
@@ -650,21 +650,21 @@ namespace Symitar
     public void FileRename(string oldName, SymFile.Type type, string newName)
     {
       SymCommand cmd = new SymCommand("File");
-      cmd.SetParam("Action" , "Rename");
-      cmd.SetParam("Type"   , SymFile.TypeString(type));
-      cmd.SetParam("Name"   , oldName);
-      cmd.SetParam("NewName", newName);
+      cmd.Set("Action" , "Rename");
+      cmd.Set("Type"   , SymFile.TypeString(type));
+      cmd.Set("Name"   , oldName);
+      cmd.Set("NewName", newName);
       Write(cmd);
       
       cmd = ReadCommand(2000);
-      if(cmd.HasParam("Status"))
+      if(cmd.HasParameter("Status"))
       {
         if(cmd.GetParam("Status").IndexOf("No such file or directory") != -1)
           throw new FileNotFoundException("File \""+oldName+"\" Not Found");
         else
           throw new Exception("Filename Too Long");
       }
-      else if(cmd.HasParam("Done"))
+      else if(cmd.HasParameter("Done"))
         return;
       else
         throw new Exception("Unknown Renaming Error");
@@ -675,20 +675,20 @@ namespace Symitar
     public void FileDelete(string name, SymFile.Type type)
     {
       SymCommand cmd = new SymCommand("File");
-      cmd.SetParam("Action", "Delete");
-      cmd.SetParam("Type"  , SymFile.TypeString(type));
-      cmd.SetParam("Name"  , name);
+      cmd.Set("Action", "Delete");
+      cmd.Set("Type"  , SymFile.TypeString(type));
+      cmd.Set("Name"  , name);
       Write(cmd);
       
       cmd = ReadCommand(2000);
-      if(cmd.HasParam("Status"))
+      if(cmd.HasParameter("Status"))
       {
         if(cmd.GetParam("Status").IndexOf("No such file or directory") != -1)
           throw new FileNotFoundException("File \""+name+"\" Not Found");
         else
           throw new Exception("Filename Too Long");
       }
-      else if(cmd.HasParam("Done"))
+      else if(cmd.HasParameter("Done"))
         return;
       else
         throw new Exception("Unknown Deletion Error");
@@ -701,15 +701,15 @@ namespace Symitar
       StringBuilder content = new StringBuilder();
       
       SymCommand cmd = new SymCommand("File");
-      cmd.SetParam("Action", "Retrieve");
-      cmd.SetParam("Type"  , SymFile.TypeString(type));
-      cmd.SetParam("Name"  , name);
+      cmd.Set("Action", "Retrieve");
+      cmd.Set("Type"  , SymFile.TypeString(type));
+      cmd.Set("Name"  , name);
       Write(cmd);
       
       while(true)
       {
         cmd = ReadCommand();
-        if(cmd.HasParam("Status"))
+        if(cmd.HasParameter("Status"))
         {
           if(cmd.GetParam("Status").IndexOf("No such file or directory") != -1)
             throw new FileNotFoundException("File \""+name+"\" Not Found");
@@ -727,7 +727,7 @@ namespace Symitar
             content.Append('\n');
         }
 
-        if(cmd.HasParam("Done"))
+        if(cmd.HasParameter("Done"))
           break;
       }
       return content.ToString();
@@ -740,15 +740,15 @@ namespace Symitar
       int chunkMax = 1024;
       
       SymCommand cmd = new SymCommand("File");
-      cmd.SetParam("Action", "Store");
-      cmd.SetParam("Type"  , SymFile.TypeString(type));
-      cmd.SetParam("Name"  , name);
+      cmd.Set("Action", "Store");
+      cmd.Set("Type"  , SymFile.TypeString(type));
+      cmd.Set("Name"  , name);
       WakeUp();
       Write(cmd);
       
       cmd = ReadCommand();
       int wtf_is_this = 0;
-      while(cmd.data.IndexOf("BadCharList") == -1)
+      while(cmd.Data.IndexOf("BadCharList") == -1)
       {
         cmd = ReadCommand();
         wtf_is_this++;
@@ -756,7 +756,7 @@ namespace Symitar
           throw new Exception("Null Pointer");
       }
       
-      if(cmd.data.IndexOf("MaxBuff") > -1)
+      if(cmd.Data.IndexOf("MaxBuff") > -1)
           chunkMax = int.Parse(cmd.GetParam("MaxBuff"));
       if(content.Length > (999*chunkMax))
         throw new Exception("File Too Large");
@@ -810,7 +810,7 @@ namespace Symitar
       Write(file.name+'\r');
       
       SymCommand cmd = ReadCommand();
-      if(cmd.HasParam("Warning") || cmd.HasParam("Error"))
+      if(cmd.HasParameter("Warning") || cmd.HasParameter("Error"))
       {
         ReadCommand();
         throw new Exception("File \""+file.name+"\" Not Found");
@@ -856,13 +856,13 @@ namespace Symitar
       Write(file.name+'\r');
       
       SymCommand cmd = ReadCommand();
-      if(cmd.HasParam("Warning") || cmd.HasParam("Error"))
+      if(cmd.HasParameter("Warning") || cmd.HasParameter("Error"))
       {
         ReadCommand();
         throw new Exception("File \""+file.name+"\" Not Found");
       }
 
-      if(cmd.command=="SpecfileData")
+      if(cmd.Command=="SpecfileData")
       {
         ReadCommand();
         Write("1\r");
@@ -906,11 +906,11 @@ namespace Symitar
       bool running = false;
 
       cmd = new SymCommand("Misc");
-      cmd.SetParam("InfoType", "BatchQueues");
+      cmd.Set("InfoType", "BatchQueues");
       Write(cmd);
 
       cmd = ReadCommand();
-      while(!cmd.HasParam("Done"))
+      while(!cmd.HasParameter("Done"))
       {
         if((cmd.GetParam("Action")=="QueueEntry") && (int.Parse(cmd.GetParam("Seq")) == sequence))
           running = true;
@@ -926,16 +926,16 @@ namespace Symitar
       SymCommand cmd;
 
       cmd = new SymCommand("File");
-      cmd.SetParam("Action"  , "List");
-      cmd.SetParam("MaxCount", "50");
-      cmd.SetParam("Query"   , "LAST 20 \"+"+which+"+\"");
-      cmd.SetParam("Type"    , "Report");
+      cmd.Set("Action"  , "List");
+      cmd.Set("MaxCount", "50");
+      cmd.Set("Query"   , "LAST 20 \"+"+which+"+\"");
+      cmd.Set("Type"    , "Report");
       Write(cmd);
 
       cmd = ReadCommand();
-      while(!cmd.HasParam("Done"))
+      while(!cmd.HasParameter("Done"))
       {
-        if(cmd.HasParam("Sequence"))
+        if(cmd.HasParameter("Sequence"))
           seqs.Add(int.Parse(cmd.GetParam("Sequence")));
         cmd = ReadCommand();
       }
@@ -981,19 +981,19 @@ namespace Symitar
       
       Write("mm0\u001B");
       cmd = ReadCommand();
-      while(cmd.command != "Input")
+      while(cmd.Command != "Input")
         cmd = ReadCommand();
       callStatus(1,"Writing Commands...");
 
       Write("1\r");
       cmd = ReadCommand();
-      while(cmd.command != "Input")
+      while(cmd.Command != "Input")
         cmd = ReadCommand();
       callStatus(2,"Writing Commands...");
 
       Write("11\r");
       cmd = ReadCommand();
-      while(cmd.command != "Input")
+      while(cmd.Command != "Input")
         cmd = ReadCommand();
       callStatus(3,"Writing Commands...");
 
@@ -1003,9 +1003,9 @@ namespace Symitar
       {
         cmd = ReadCommand();
 
-        if((cmd.command == "Input") && (cmd.GetParam("HelpCode")=="20301"))
+        if((cmd.Command == "Input") && (cmd.GetParam("HelpCode")=="20301"))
           break;
-        if(cmd.command == "Input")
+        if(cmd.Command == "Input")
         {
           callStatus(4,"Please Enter Prompts");
 
@@ -1014,46 +1014,46 @@ namespace Symitar
           {
             Write("\u001B");
             cmd = ReadCommand();
-            while(cmd.command != "Input")
+            while(cmd.Command != "Input")
               cmd = ReadCommand();
             return RepgenRunResult.Cancelled();
           }
           else
             Write(result.Trim()+'\r');
         }
-        else if(cmd.command == "Bell")
+        else if(cmd.Command == "Bell")
           callStatus(4, "Invalid Prompt Input, Please Re-Enter");
-        else if((cmd.command == "Batch") && (cmd.GetParam("Text")=="No such file or directory"))
+        else if((cmd.Command == "Batch") && (cmd.GetParam("Text")=="No such file or directory"))
         {
           cmd = ReadCommand();
-          while(cmd.command != "Input")
+          while(cmd.Command != "Input")
             cmd = ReadCommand();
           return RepgenRunResult.FileNotFound();
         }
-        else if(cmd.command == "SpecfileErr")
+        else if(cmd.Command == "SpecfileErr")
           erroredOut = true;
-        else if(erroredOut && (cmd.command == "Batch") && (cmd.GetParam("Action") == "DisplayLine"))
+        else if(erroredOut && (cmd.Command == "Batch") && (cmd.GetParam("Action") == "DisplayLine"))
         {
           string err = cmd.GetParam("Text");
           cmd = ReadCommand();
-          while (cmd.command != "Input")
+          while (cmd.Command != "Input")
             cmd = ReadCommand();
           return RepgenRunResult.Error(err);
         }
-        else if((cmd.command == "Batch") && (cmd.GetParam("Action") == "DisplayLine"))
+        else if((cmd.Command == "Batch") && (cmd.GetParam("Action") == "DisplayLine"))
           callStatus(5, cmd.GetParam("Text"));
       }
       
       Write("\r");
       cmd = ReadCommand();
-      while(cmd.command != "Input")
+      while(cmd.Command != "Input")
         cmd = ReadCommand();
       
       callStatus(6, "Getting Queue List");
       Write("0\r");
       cmd = ReadCommand();
       Dictionary<int,int> queAvailable = new Dictionary<int,int>();
-      while(cmd.command != "Input")
+      while(cmd.Command != "Input")
       {
         if((cmd.GetParam("Action") == "DisplayLine") && (cmd.GetParam("Text").Contains("Batch Queues Available:")))
         {
@@ -1079,11 +1079,11 @@ namespace Symitar
       
       callStatus(7, "Getting Queue Counts");
       cmd = new SymCommand("Misc");
-      cmd.SetParam("InfoType", "BatchQueues");
+      cmd.Set("InfoType", "BatchQueues");
       Write(cmd);
       
       cmd = ReadCommand();
-      while(!cmd.HasParam("Done"))
+      while(!cmd.HasParameter("Done"))
       {
         if((cmd.GetParam("Action") == "QueueEntry") && (cmd.GetParam("Stat") == "Running"))
           queAvailable[int.Parse(cmd.GetParam("Queue"))]++;
@@ -1100,23 +1100,23 @@ namespace Symitar
       
       Write(queue.ToString()+"\r");
       cmd = ReadCommand();
-      while(cmd.command != "Input")
+      while(cmd.Command != "Input")
         cmd = ReadCommand();
       
       callStatus(8, "Getting Sequence Numbers");
       Write("1\r");
       cmd = ReadCommand();
-      while(cmd.command != "Input")
+      while(cmd.Command != "Input")
         cmd = ReadCommand();
       
       cmd = new SymCommand("Misc");
-      cmd.SetParam("InfoType", "BatchQueues");
+      cmd.Set("InfoType", "BatchQueues");
       Write(cmd);
       
       int newestTime = 0;
       int sequenceNo = -1;
       cmd = ReadCommand();
-      while(!cmd.HasParam("Done"))
+      while(!cmd.HasParameter("Done"))
       {
         if(cmd.GetParam("Action") == "QueueEntry")
         {
@@ -1161,41 +1161,41 @@ namespace Symitar
       string outTitle = "PwrIDE FM - " + new Random().Next(8388608).ToString("D7");
       
       Write("mm0\u001B");
-      cmd=ReadCommand(); while(cmd.command!="Input") cmd=ReadCommand();
+      cmd=ReadCommand(); while(cmd.Command!="Input") cmd=ReadCommand();
 
       callStatus(2,"Writing Commands...");
       Write("1\r");
-      cmd=ReadCommand(); while(cmd.command!="Input") cmd=ReadCommand();
+      cmd=ReadCommand(); while(cmd.Command!="Input") cmd=ReadCommand();
 
       Write("24\r"); //Misc. Processing
-      cmd=ReadCommand(); while(cmd.command!="Input") cmd=ReadCommand();
+      cmd=ReadCommand(); while(cmd.Command!="Input") cmd=ReadCommand();
       
       Write("5\r"); //Batch FM
-      cmd=ReadCommand(); while(cmd.command!="Input") cmd=ReadCommand();
+      cmd=ReadCommand(); while(cmd.Command!="Input") cmd=ReadCommand();
       
       Write(((int)fmtype).ToString()+"\r"); //FM File Type
-      cmd=ReadCommand(); while(cmd.command!="Input") cmd=ReadCommand();
+      cmd=ReadCommand(); while(cmd.Command!="Input") cmd=ReadCommand();
       
       Write("0\r"); //Undo a Posting? (NO)
-      cmd=ReadCommand(); while(cmd.command!="Input") cmd=ReadCommand();
+      cmd=ReadCommand(); while(cmd.Command!="Input") cmd=ReadCommand();
       
       Write(inpTitle+"\r"); //Title of Batch Report Output to Use as FM Script
-      cmd=ReadCommand(); while(cmd.command!="Input") cmd=ReadCommand();
+      cmd=ReadCommand(); while(cmd.Command!="Input") cmd=ReadCommand();
       
       Write("1\r"); //Number of Search Days? (1)
-      cmd=ReadCommand(); while(cmd.command!="Input") cmd=ReadCommand();
+      cmd=ReadCommand(); while(cmd.Command!="Input") cmd=ReadCommand();
       
       if(fmtype == FMType.Account)
       {
         Write("1\r"); //Record FM History (YES)
-        cmd=ReadCommand(); while(cmd.command!="Input") cmd=ReadCommand();
+        cmd=ReadCommand(); while(cmd.Command!="Input") cmd=ReadCommand();
       }
       
       Write(outTitle+"\r"); //Name of Posting (needed to lookup later)
-      cmd=ReadCommand(); while(cmd.command!="Input") cmd=ReadCommand();
+      cmd=ReadCommand(); while(cmd.Command!="Input") cmd=ReadCommand();
       
       Write("1\r"); //Produce Empty Report If No Exceptions? (YES)
-      cmd=ReadCommand(); while(cmd.command!="Input") cmd=ReadCommand();
+      cmd=ReadCommand(); while(cmd.Command!="Input") cmd=ReadCommand();
       
       Write("0\r"); //Batch Options? (NO)
 
@@ -1203,7 +1203,7 @@ namespace Symitar
       callStatus(4, "Getting Queue List");
       cmd = ReadCommand();
       Dictionary<int,int> queAvailable = new Dictionary<int,int>();
-      while(cmd.command != "Input")
+      while(cmd.Command != "Input")
       {
         if((cmd.GetParam("Action") == "DisplayLine") && (cmd.GetParam("Text").Contains("Batch Queues Available:")))
         {
@@ -1230,11 +1230,11 @@ namespace Symitar
       //get queue counts
       callStatus(5, "Getting Queue Counts");
       cmd = new SymCommand("Misc");
-      cmd.SetParam("InfoType", "BatchQueues");
+      cmd.Set("InfoType", "BatchQueues");
       Write(cmd);
       
       cmd = ReadCommand();
-      while(!cmd.HasParam("Done"))
+      while(!cmd.HasParameter("Done"))
       {
         if((cmd.GetParam("Action") == "QueueEntry") && (cmd.GetParam("Stat") == "Running"))
           queAvailable[int.Parse(cmd.GetParam("Queue"))]++;
@@ -1251,21 +1251,21 @@ namespace Symitar
       
       callStatus(7, "Writing Final Commands");
       Write(queue.ToString()+"\r"); //write queue
-      cmd=ReadCommand(); while(cmd.command!="Input") cmd=ReadCommand();
+      cmd=ReadCommand(); while(cmd.Command!="Input") cmd=ReadCommand();
       
       Write("1\r"); //Okay (to Proceed)? (YES)
-      cmd=ReadCommand(); while(cmd.command!="Input") cmd=ReadCommand();
+      cmd=ReadCommand(); while(cmd.Command!="Input") cmd=ReadCommand();
       
       //get queues again
       callStatus(8, "Finding FM Sequence");
       cmd = new SymCommand("Misc");
-      cmd.SetParam("InfoType", "BatchQueues");
+      cmd.Set("InfoType", "BatchQueues");
       Write(cmd);
       
       int newestTime = 0;
       int sequenceNo = -1;
       cmd = ReadCommand();
-      while(!cmd.HasParam("Done"))
+      while(!cmd.HasParameter("Done"))
       {
         if(cmd.GetParam("Action") == "QueueEntry")
         {
