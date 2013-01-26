@@ -10,6 +10,12 @@ namespace Symitar
         public int RunTime { get; set; }
         public string ErrorMessage { get; set; }
 
+        public RepgenRunResult()
+        {
+            Sequence = -1;
+            RunTime = -1;
+        }
+
         public static RepgenRunResult Okay(int sequence, int runTime)
         {
             return new RepgenRunResult
@@ -30,13 +36,17 @@ namespace Symitar
             };
         }
 
-        public static RepgenRunResult Error(string error)
+        public static RepgenRunResult Error(string message)
         {
+            if(string.IsNullOrEmpty(message))
+                throw new ArgumentNullException("message", "Error message must be specified.");
+
             return new RepgenRunResult
             {
                 Status = RunStatus.Error,
                 Sequence = -1,
-                RunTime = -1
+                RunTime = -1,
+                ErrorMessage = message
             };
         }
 

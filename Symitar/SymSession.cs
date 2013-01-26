@@ -1028,7 +1028,7 @@ namespace Symitar
           cmd = ReadCommand();
           while(cmd.command != "Input")
             cmd = ReadCommand();
-          return RepgenRunResult.NotFound();
+          return RepgenRunResult.FileNotFound();
         }
         else if(cmd.command == "SpecfileErr")
           erroredOut = true;
@@ -1038,7 +1038,7 @@ namespace Symitar
           cmd = ReadCommand();
           while (cmd.command != "Input")
             cmd = ReadCommand();
-          return RepgenRunResult.Errored(err);
+          return RepgenRunResult.Error(err);
         }
         else if((cmd.command == "Batch") && (cmd.GetParam("Action") == "DisplayLine"))
           callStatus(5, cmd.GetParam("Text"));
