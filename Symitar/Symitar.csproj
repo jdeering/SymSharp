@@ -43,8 +43,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RunStatus.cs" />
     <Compile Include="SpecfileError.cs" />
-    <Compile Include="RepRunErr.cs" />
+    <Compile Include="RepgenRunResult.cs" />
     <Compile Include="SymCommand.cs" />
     <Compile Include="SymFile.cs" />
     <Compile Include="SymSession.cs" />

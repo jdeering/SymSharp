@@ -971,7 +971,7 @@ namespace Symitar
       return -1;
     }
     //------------------------------------------------------------------------
-    public RepRunErr FileRun(SymFile file, FileRun_Status callStatus, FileRun_Prompt callPrompt, int queue)
+    public RepgenRunResult FileRun(SymFile file, FileRun_Status callStatus, FileRun_Prompt callPrompt, int queue)
     {
       if (file.type != SymFile.Type.REPGEN)
         throw new Exception("Cannot Run a " + file.TypeString() + " File");
@@ -1016,7 +1016,7 @@ namespace Symitar
             cmd = ReadCommand();
             while(cmd.command != "Input")
               cmd = ReadCommand();
-            return RepRunErr.Cancelled();
+            return RepgenRunResult.Cancelled();
           }
           else
             Write(result.Trim()+'\r');
@@ -1028,7 +1028,7 @@ namespace Symitar
           cmd = ReadCommand();
           while(cmd.command != "Input")
             cmd = ReadCommand();
-          return RepRunErr.NotFound();
+          return RepgenRunResult.NotFound();
         }
         else if(cmd.command == "SpecfileErr")
           erroredOut = true;
@@ -1038,7 +1038,7 @@ namespace Symitar
           cmd = ReadCommand();
           while (cmd.command != "Input")
             cmd = ReadCommand();
-          return RepRunErr.Errored(err);
+          return RepgenRunResult.Errored(err);
         }
         else if((cmd.command == "Batch") && (cmd.GetParam("Action") == "DisplayLine"))
           callStatus(5, cmd.GetParam("Text"));
@@ -1135,7 +1135,7 @@ namespace Symitar
       }
       
       callStatus(9, "Running..");
-      return RepRunErr.Okay(sequenceNo, newestTime);
+      return RepgenRunResult.Okay(sequenceNo, newestTime);
     }
     //========================================================================
     // FM Running Stuff
