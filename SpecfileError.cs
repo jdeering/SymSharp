@@ -5,36 +5,63 @@ namespace Symitar
 {
     public class SpecfileError
     {
-        public SymFile fileSrc;
-        public string  fileErr;
-        public string  error;
-        public int     line;
-        public int     column;
-        public int     installedSize;
-        public bool    any;
-
-        public SpecfileError(SymFile Source, string ErrFile, string ErrMsg, int Row, int Col)
+        private SymFile _sourceFile;
+        public SymFile Specfile
         {
-            fileSrc = Source;
-            fileErr = ErrFile;
-            error   = ErrMsg;
-            line    = Row;
-            column  = Col;
-            any     = true;
+            get { return _sourceFile; }
+        }
+
+        private string _fileError;
+        public string FileError
+        {
+            get { return _fileError; }
+        }
+
+        private string _errorMessage;
+        public string ErrorMessage
+        {
+            get { return _errorMessage; }
+        }
+
+        private int _errorLine;
+        private int _errorColumn;
+
+        public int Line
+        {
+            get { return _errorLine; }
+        }
+
+        public int Column
+        {
+            get { return _errorColumn; }
+        }
+
+        public int InstallSize { get; set; }
+
+        public bool FailedCheck
+        {
+            get { return _errorLine > 0; }
+        }
+
+        public SpecfileError(SymFile specfile, string fileError, string message, int row, int col)
+        {
+            _sourceFile = specfile;
+            _fileError = fileError;
+            _errorMessage = message;
+            _errorLine = row;
+            _errorColumn = col;
         }
 
         public static SpecfileError None()
         {
-            SpecfileError ret = new SpecfileError(null, "", "", 0, 0);
-            ret.any = false;
-            return ret;
+            SpecfileError error = new SpecfileError(null, "", "", 0, 0);
+            return error;
         }
 
         public static SpecfileError None(int size)
         {
             SpecfileError ret = new SpecfileError(null, "", "", 0, 0);
-            ret.any = false;
-            ret.installedSize = size;
+            ret.InstallSize = size;
             return ret;
         }
     }
