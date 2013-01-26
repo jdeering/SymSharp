@@ -1,2 +1,10 @@
 .DS_Store
 
+# Ignore files created as a result
+# of the conversion
+_UpgradeReport_Files
+Backup
+UpgradeLog.*
+
+obj
+*.suo
