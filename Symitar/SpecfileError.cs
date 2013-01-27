@@ -5,8 +5,8 @@ namespace Symitar
 {
     public class SpecfileError
     {
-        private SymFile _sourceFile;
-        public SymFile Specfile
+        private Symitar.File _sourceFile;
+        public Symitar.File Specfile
         {
             get { return _sourceFile; }
         }
@@ -44,7 +44,7 @@ namespace Symitar
             get { return InvalidInstall || _errorLine > 0; }
         }
 
-        public SpecfileError(SymFile specfile, string fileError, string message, int line, int col)
+        public SpecfileError(Symitar.File specfile, string fileError, string message, int line, int col)
         {
             _sourceFile = specfile;
             _fileError = fileError;

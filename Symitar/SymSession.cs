@@ -606,13 +606,13 @@ namespace Symitar
       return true;
     }
     //========================================================================
-    public List<SymFile> FileList(string pattern, SymFile.Type type)
+    public List<Symitar.File> FileList(string pattern, Symitar.FileType type)
     {
-      List<SymFile> files = new List<SymFile>();
+      List<Symitar.File> files = new List<Symitar.File>();
       
       SymCommand cmd = new SymCommand("File");
-      cmd.Set("Type"  , SymFile.TypeDescriptor[(int)type]);
-      cmd.Set("Name"  , pattern);
+      cmd.Set("Type", Utilities.FileTypeString(type));
+      cmd.Set("Name", pattern);
       cmd.Set("Action", "List");
       Write(cmd);
       
@@ -622,36 +622,36 @@ namespace Symitar
         if(cmd.HasParameter("Status"))
           break;
         if(cmd.HasParameter("Name"))
-          files.Add(new SymFile(server, sym, cmd.GetParam("Name"), cmd.GetParam("Date"), cmd.GetParam("Time"), int.Parse(cmd.GetParam("Size")), type));
+            files.Add(new Symitar.File(server, sym, cmd.GetParam("Name"), type, cmd.GetParam("Date"), cmd.GetParam("Time"), int.Parse(cmd.GetParam("Size"))));
         if(cmd.HasParameter("Done"))
           break;
       }
       return files;
     }
     //========================================================================
-    public bool FileExists(SymFile file)
+    public bool FileExists(Symitar.File file)
     {
-      return (FileList(file.name, file.type).Count > 0);
+      return (FileList(file.FileName, file.Type).Count > 0);
     }
     //------------------------------------------------------------------------
-    public bool FileExists(string filename, SymFile.Type type)
+    public bool FileExists(string filename, Symitar.FileType type)
     {
       return (FileList(filename, type).Count > 0);
     }
     //========================================================================
-    public SymFile FileGet(string filename, SymFile.Type type)
+    public Symitar.File FileGet(string filename, Symitar.FileType type)
     {
-      List<SymFile> files = FileList(filename, type);
+      List<Symitar.File> files = FileList(filename, type);
       if(files.Count < 1)
         throw new FileNotFoundException("File \""+filename+"\" Not Found");
       return files[0];
     }
     //========================================================================
-    public void FileRename(string oldName, SymFile.Type type, string newName)
+    public void FileRename(string oldName, Symitar.FileType type, string newName)
     {
       SymCommand cmd = new SymCommand("File");
       cmd.Set("Action" , "Rename");
-      cmd.Set("Type"   , SymFile.TypeString(type));
+      cmd.Set("Type"   , Utilities.FileTypeString(type));
       cmd.Set("Name"   , oldName);
       cmd.Set("NewName", newName);
       Write(cmd);
@@ -670,13 +670,13 @@ namespace Symitar
         throw new Exception("Unknown Renaming Error");
     }
     //------------------------------------------------------------------------
-    public void FileRename(SymFile file, string newName) { FileRename(file.name, file.type, newName); }
+    public void FileRename(Symitar.File file, string newName) { FileRename(file.FileName, file.Type, newName); }
     //========================================================================
-    public void FileDelete(string name, SymFile.Type type)
+    public void FileDelete(string name, Symitar.FileType type)
     {
       SymCommand cmd = new SymCommand("File");
       cmd.Set("Action", "Delete");
-      cmd.Set("Type"  , SymFile.TypeString(type));
+      cmd.Set("Type", Utilities.FileTypeString(type));
       cmd.Set("Name"  , name);
       Write(cmd);
       
@@ -694,15 +694,15 @@ namespace Symitar
         throw new Exception("Unknown Deletion Error");
     }
     //------------------------------------------------------------------------
-    public void FileDelete(SymFile file) { FileDelete(file.name, file.type); }
+    public void FileDelete(Symitar.File file) { FileDelete(file.FileName, file.Type); }
     //========================================================================
-    public string FileRead(string name, SymFile.Type type)
+    public string FileRead(string name, Symitar.FileType type)
     {
       StringBuilder content = new StringBuilder();
       
       SymCommand cmd = new SymCommand("File");
       cmd.Set("Action", "Retrieve");
-      cmd.Set("Type"  , SymFile.TypeString(type));
+      cmd.Set("Type", Utilities.FileTypeString(type));
       cmd.Set("Name"  , name);
       Write(cmd);
       
@@ -723,7 +723,7 @@ namespace Symitar
         if(chunk.Length > 0)
         {
           content.Append(chunk);
-          if(type==SymFile.Type.REPORT)
+          if(type==Symitar.FileType.Report)
             content.Append('\n');
         }
 
@@ -733,15 +733,15 @@ namespace Symitar
       return content.ToString();
     }
     //------------------------------------------------------------------------
-    public string FileRead(SymFile file) { return FileRead(file.name, file.type); }
+    public string FileRead(Symitar.File file) { return FileRead(file.FileName, file.Type); }
     //========================================================================
-    public void FileWrite(string name, SymFile.Type type, string content)
+    public void FileWrite(string name, Symitar.FileType type, string content)
     {
       int chunkMax = 1024;
       
       SymCommand cmd = new SymCommand("File");
       cmd.Set("Action", "Store");
-      cmd.Set("Type"  , SymFile.TypeString(type));
+      cmd.Set("Type"  , Utilities.FileTypeString(type));
       cmd.Set("Name"  , name);
       WakeUp();
       Write(cmd);
@@ -798,22 +798,22 @@ namespace Symitar
       WakeUp();
     }
     //------------------------------------------------------------------------
-    public void FileWrite(SymFile file, string content) { FileWrite(file.name, file.type, content); }
+    public void FileWrite(Symitar.File file, string content) { FileWrite(file.FileName, file.Type, content); }
     //========================================================================
-    public SpecfileError FileCheck(SymFile file)
+    public SpecfileError FileCheck(Symitar.File file)
     {  
-      if(file.type != SymFile.Type.REPGEN)
-        throw new Exception("Cannot Check a "+file.TypeString()+" File");
+      if(file.Type != Symitar.FileType.RepGen)
+        throw new Exception("Cannot Check a "+file.FileTypeString()+" File");
       
       Write("mm3\u001B");    ReadCommand();
       Write("7\r");          ReadCommand(); ReadCommand();
-      Write(file.name+'\r');
+      Write(file.FileName+'\r');
       
       SymCommand cmd = ReadCommand();
       if(cmd.HasParameter("Warning") || cmd.HasParameter("Error"))
       {
         ReadCommand();
-        throw new Exception("File \""+file.name+"\" Not Found");
+        throw new Exception("File \""+file.FileName+"\" Not Found");
       }
       if(cmd.GetParam("Action")=="NoError")
       {
@@ -846,20 +846,20 @@ namespace Symitar
       throw new Exception("Unknown Checking Error");
     }
     //========================================================================
-    public SpecfileError FileInstall(SymFile file)
+    public SpecfileError FileInstall(Symitar.File file)
     {
-      if(file.type != SymFile.Type.REPGEN)
-        throw new Exception("Cannot Install a "+file.TypeString()+" File");
+      if(file.Type != Symitar.FileType.RepGen)
+        throw new Exception("Cannot Install a "+file.FileTypeString()+" File");
       
       Write("mm3\u001B");    ReadCommand();
       Write("8\r");          ReadCommand(); ReadCommand();
-      Write(file.name+'\r');
+      Write(file.FileName+'\r');
       
       SymCommand cmd = ReadCommand();
       if(cmd.HasParameter("Warning") || cmd.HasParameter("Error"))
       {
         ReadCommand();
-        throw new Exception("File \""+file.name+"\" Not Found");
+        throw new Exception("File \""+file.FileName+"\" Not Found");
       }
 
       if(cmd.Command=="SpecfileData")
@@ -950,7 +950,7 @@ namespace Symitar
       List<int> seqs = GetPrintSequences("REPWRITER");
       foreach(int i in seqs)
       {
-        SymFile file = new SymFile(server, sym, i.ToString(), DateTime.Now, 0, SymFile.Type.REPORT);
+          Symitar.File file = new Symitar.File(server, sym, i.ToString(), Symitar.FileType.Report, DateTime.Now, 0);
         string contents = FileRead(file);
         int beganIndex = contents.IndexOf("Processing begun on");
         if(beganIndex != -1)
@@ -971,10 +971,10 @@ namespace Symitar
       return -1;
     }
     //------------------------------------------------------------------------
-    public RepgenRunResult FileRun(SymFile file, FileRun_Status callStatus, FileRun_Prompt callPrompt, int queue)
+    public RepgenRunResult FileRun(Symitar.File file, FileRun_Status callStatus, FileRun_Prompt callPrompt, int queue)
     {
-      if (file.type != SymFile.Type.REPGEN)
-        throw new Exception("Cannot Run a " + file.TypeString() + " File");
+      if (file.Type != Symitar.FileType.RepGen)
+        throw new Exception("Cannot Run a " + file.FileTypeString() + " File");
 
       SymCommand cmd;
       callStatus(0,"Initializing...");
@@ -997,7 +997,7 @@ namespace Symitar
         cmd = ReadCommand();
       callStatus(3,"Writing Commands...");
 
-      Write(file.name + "\r");
+      Write(file.FileName + "\r");
       bool erroredOut = false;
       while(true)
       {
@@ -1145,7 +1145,7 @@ namespace Symitar
       List<int> seqs = GetPrintSequences("MISCFMPOST");
       foreach(int i in seqs)
       {
-        SymFile file = new SymFile(server, sym, i.ToString(), DateTime.Now, 0, SymFile.Type.REPORT);
+          Symitar.File file = new Symitar.File(server, sym, i.ToString(), Symitar.FileType.Report, DateTime.Now, 0);
         string contents = FileRead(file);
         contents = contents.Substring(contents.IndexOf("Name of Posting: ")+17);
         if(contents.StartsWith(title))
