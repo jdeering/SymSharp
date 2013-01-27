@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using FluentAssertions;
 using NUnit.Framework;
+using Rhino.Mocks;
 
 namespace Symitar.Tests
 {
@@ -19,31 +20,24 @@ namespace Symitar.Tests
         }
 
         [Test]
-        public void Constructor_NoParameters_DefaultsTimeNow()
-        {
-            File file = new File();
-            file.TimeStamp.Should().Be(DateTime.Now);
-        }
-
-        [Test]
         public void Constructor_NoParameters_DefaultsFileSize0()
         {
             File file = new File();
-            file.FileSize.Should().Be(0);
+            file.Size.Should().Be(0);
         }
 
         [Test]
         public void Constructor_BasicParameters_HasCorrectFileSize()
         {
             File file = new File("", "", "", FileType.RepGen, DateTime.Now, 101);
-            file.FileSize.Should().Be(101);
+            file.Size.Should().Be(101);
         }
 
         [Test]
         public void Constructor_BasicParameters_HasCorrectType()
         {
             File file = new File("", "", "", FileType.RepGen, DateTime.Now, 101);
-            file.FileSize.Should().Be(101);
+            file.Size.Should().Be(101);
         }
 
         [Test]
@@ -64,7 +58,7 @@ namespace Symitar.Tests
         public void Constructor_BasicParameters_HasCorrectName()
         {
             File file = new File("", "", "RANDOM.FILE.NAME", FileType.RepGen, DateTime.Now, 101);
-            file.FileName.Should().Be("RANDOM.FILE.NAME");
+            file.Name.Should().Be("RANDOM.FILE.NAME");
         }
 
         [Test]
