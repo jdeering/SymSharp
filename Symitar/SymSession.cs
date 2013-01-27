@@ -631,7 +631,7 @@ namespace Symitar
     //========================================================================
     public bool FileExists(Symitar.File file)
     {
-      return (FileList(file.FileName, file.Type).Count > 0);
+      return (FileList(file.Name, file.Type).Count > 0);
     }
     //------------------------------------------------------------------------
     public bool FileExists(string filename, Symitar.FileType type)
@@ -670,7 +670,7 @@ namespace Symitar
         throw new Exception("Unknown Renaming Error");
     }
     //------------------------------------------------------------------------
-    public void FileRename(Symitar.File file, string newName) { FileRename(file.FileName, file.Type, newName); }
+    public void FileRename(Symitar.File file, string newName) { FileRename(file.Name, file.Type, newName); }
     //========================================================================
     public void FileDelete(string name, Symitar.FileType type)
     {
@@ -694,7 +694,7 @@ namespace Symitar
         throw new Exception("Unknown Deletion Error");
     }
     //------------------------------------------------------------------------
-    public void FileDelete(Symitar.File file) { FileDelete(file.FileName, file.Type); }
+    public void FileDelete(Symitar.File file) { FileDelete(file.Name, file.Type); }
     //========================================================================
     public string FileRead(string name, Symitar.FileType type)
     {
@@ -733,7 +733,7 @@ namespace Symitar
       return content.ToString();
     }
     //------------------------------------------------------------------------
-    public string FileRead(Symitar.File file) { return FileRead(file.FileName, file.Type); }
+    public string FileRead(Symitar.File file) { return FileRead(file.Name, file.Type); }
     //========================================================================
     public void FileWrite(string name, Symitar.FileType type, string content)
     {
@@ -798,7 +798,7 @@ namespace Symitar
       WakeUp();
     }
     //------------------------------------------------------------------------
-    public void FileWrite(Symitar.File file, string content) { FileWrite(file.FileName, file.Type, content); }
+    public void FileWrite(Symitar.File file, string content) { FileWrite(file.Name, file.Type, content); }
     //========================================================================
     public SpecfileError FileCheck(Symitar.File file)
     {  
@@ -807,13 +807,13 @@ namespace Symitar
       
       Write("mm3\u001B");    ReadCommand();
       Write("7\r");          ReadCommand(); ReadCommand();
-      Write(file.FileName+'\r');
+      Write(file.Name+'\r');
       
       SymCommand cmd = ReadCommand();
       if(cmd.HasParameter("Warning") || cmd.HasParameter("Error"))
       {
         ReadCommand();
-        throw new Exception("File \""+file.FileName+"\" Not Found");
+        throw new Exception("File \""+file.Name+"\" Not Found");
       }
       if(cmd.GetParam("Action")=="NoError")
       {
@@ -853,13 +853,13 @@ namespace Symitar
       
       Write("mm3\u001B");    ReadCommand();
       Write("8\r");          ReadCommand(); ReadCommand();
-      Write(file.FileName+'\r');
+      Write(file.Name+'\r');
       
       SymCommand cmd = ReadCommand();
       if(cmd.HasParameter("Warning") || cmd.HasParameter("Error"))
       {
         ReadCommand();
-        throw new Exception("File \""+file.FileName+"\" Not Found");
+        throw new Exception("File \""+file.Name+"\" Not Found");
       }
 
       if(cmd.Command=="SpecfileData")
@@ -997,7 +997,7 @@ namespace Symitar
         cmd = ReadCommand();
       callStatus(3,"Writing Commands...");
 
-      Write(file.FileName + "\r");
+      Write(file.Name + "\r");
       bool erroredOut = false;
       while(true)
       {

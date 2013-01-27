@@ -7,19 +7,19 @@ namespace Symitar
     {
         public string Server { get; set; }
         public string Sym { get; set; }
-        public string FileName { get; set; }
+        public string Name { get; set; }
         public DateTime TimeStamp { get; set; }
-        public int FileSize { get; set; }
+        public int Size { get; set; }
         public FileType Type { get; set; }
-        public int      Sequence;
-        public string   Title;
-        public int      PageCount;
+        public int Sequence { get; set; }
+        public string Title { get; set; }
+        public int PageCount { get; set; }
 
         public File()
         {
-            Server = Sym = FileName = "";
+            Server = Sym = Name = "";
             TimeStamp = DateTime.Now;
-            FileSize = 0;
+            Size = 0;
             Type = FileType.RepGen;
         }
 
@@ -27,9 +27,9 @@ namespace Symitar
         {
             Server = server;
             Sym = sym;
-            FileName = name;
+            Name = name;
             TimeStamp = Utilities.ParseSystemTime(date, time);
-            FileSize = fileSize;
+            Size = fileSize;
             Type = fileType;
         }
 
@@ -37,9 +37,9 @@ namespace Symitar
         {
             Server = server;
             Sym = sym;
-            FileName = name;
+            Name = name;
             TimeStamp = date;
-            FileSize = fileSize;
+            Size = fileSize;
             Type = fileType;
         }
 
