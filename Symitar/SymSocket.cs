@@ -5,12 +5,13 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using Symitar.Interfaces;
 
 namespace Symitar
 {
     // Wraps TCP Client to connect
     // to Symitar. Used by SymSession.
-    public class SymSocket
+    public class SymSocket : ISymSocket
     {
         private const int DefaultTimeout = 5000;
         private const int KeepAliveInterval = 45000;
@@ -148,7 +149,7 @@ namespace Symitar
             Write(Utilities.EncodeString(str), timeout);
         }
 
-        public void Write(SymCommand cmd, int timeout)
+        public void Write(ISymCommand cmd, int timeout)
         {
             Write(cmd.ToString(), timeout);
         }
@@ -163,7 +164,7 @@ namespace Symitar
             Write(Utilities.EncodeString(str), DefaultTimeout);
         }
 
-        public void Write(SymCommand cmd)
+        public void Write(ISymCommand cmd)
         {
             Write(cmd.ToString(), DefaultTimeout);
         }
@@ -256,20 +257,23 @@ namespace Symitar
         public byte[] ReadUntil(string match) { return ReadUntil(match, DefaultTimeout); }
         public string ReadUntilString(byte[] match) { return ReadUntilString(match, DefaultTimeout); }
         public string ReadUntilString(string match) { return ReadUntilString(match, DefaultTimeout); }
+        
+        public ISymCommand ReadCommand()
+        {
+            return ReadCommand(DefaultTimeout);
+        }
 
-        public SymCommand ReadCommand(int timeout)
+        public ISymCommand ReadCommand(int timeout)
         {
             ReadUntil(new byte[] { 0x1B, 0xFE }, timeout);
             string data = ReadUntilString(new byte[] { 0xFC }, timeout);
 
-            SymCommand cmd = SymCommand.Parse(data.Substring(0, data.Length - 1));
+            ISymCommand cmd = SymCommand.Parse(data.Substring(0, data.Length - 1));
             if ((cmd.Command == "MsgDlg") && (cmd.HasParameter("Text")))
-                if (cmd.Parameters["Text"].IndexOf("From PID") != -1)
+                if (cmd.Get("Text").IndexOf("From PID") != -1)
                     cmd = ReadCommand(timeout);
             return cmd;
         }
-
-        public SymCommand ReadCommand() { return ReadCommand(DefaultTimeout); }
 
         public byte[] ReadUntil(List<byte[]> matchers, int timeout)
         {

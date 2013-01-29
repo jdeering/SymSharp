@@ -3,45 +3,52 @@ using System.Text;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Linq;
+using Symitar.Interfaces;
 
 namespace Symitar
 {
-    public class SymCommand
+    public class SymCommand : ISymCommand
     {
-        public string Command = "";
-        public string Data = "";
-        public Dictionary<string, string> Parameters = new Dictionary<string, string>();
+        public string Command { get; set; }
+        public string Data { get; set; }
+
+        private Dictionary<string, string> _parameters;
+        public Dictionary<string, string> Parameters
+        {
+            get { return _parameters; }
+        }
 
         private static int _msgId = 10000;
         private const char Delimiter = '~';
 
         public SymCommand()
         {
-            Parameters.Add("MsgId", _msgId.ToString());
+            _parameters = new Dictionary<string, string>();
+            _parameters.Add("MsgId", _msgId.ToString());
             _msgId++;
         }
 
         public SymCommand(string cmd)
         {
             Command = cmd;
-            Parameters.Add("MsgId", _msgId.ToString());
+            _parameters.Add("MsgId", _msgId.ToString());
             _msgId++;
         }
 
         public SymCommand(string cmd, Dictionary<string, string> parms)
         {
             Command = cmd;
-            Parameters = parms;
-            Parameters.Add("MsgId", _msgId.ToString());
+            _parameters = parms;
+            _parameters.Add("MsgId", _msgId.ToString());
             _msgId++;
         }
 
         public SymCommand(string cmd, Dictionary<string, string> parms, string data)
         {
             Command = cmd;
-            Parameters = parms;
+            _parameters = parms;
             Data = data;
-            Parameters.Add("MsgId", _msgId.ToString());
+            _parameters.Add("MsgId", _msgId.ToString());
             _msgId++;
         }
 
@@ -86,7 +93,7 @@ namespace Symitar
 
         public override string ToString()
         {
-            string commandParams = Parameters
+            string commandParams = _parameters
                             .Select(
                                 x =>
                                     {
@@ -105,20 +112,20 @@ namespace Symitar
 
         public void Set(string parameter, string value)
         {
-            if (Parameters.ContainsKey(parameter))
-                Parameters[parameter] = value;
+            if (_parameters.ContainsKey(parameter))
+                _parameters[parameter] = value;
             else
-                Parameters.Add(parameter, value);
+                _parameters.Add(parameter, value);
         }
 
         public bool HasParameter(string parameter)
         {
-            return Parameters.ContainsKey(parameter);
+            return _parameters.ContainsKey(parameter);
         }
 
-        public string GetParam(string key)
+        public string Get(string key)
         {
-            return HasParameter(key) ? Parameters[key] : "";
+            return HasParameter(key) ? _parameters[key] : "";
         }
     }
 }

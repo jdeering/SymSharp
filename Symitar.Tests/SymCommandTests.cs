@@ -67,7 +67,7 @@ namespace Symitar.Tests
             var parameters = new Dictionary<string, string> { { "Initial", "1" } };
             var cmd = new SymCommand("Command", parameters);
 
-            cmd.Parameters.ContainsKey("Initial").Should().BeTrue();
+            cmd.HasParameter("Initial").Should().BeTrue();
         }
 
         [Test]
@@ -76,7 +76,7 @@ namespace Symitar.Tests
             var parameters = new Dictionary<string, string> {{"Initial", "1"}};
             var cmd = new SymCommand("Command", parameters);
 
-            cmd.Parameters["Initial"].Should().Be("1");
+            cmd.Get("Initial").Should().Be("1");
         }
 
         [Test]
@@ -143,7 +143,7 @@ namespace Symitar.Tests
         public void Parse_WithParameter_ShouldHaveTheCorrectParameterValue()
         {
             var cmd = SymCommand.Parse("CommandMessage~Parameter1=RandomValue");
-            cmd.GetParam("Parameter1").Should().Be("RandomValue");
+            cmd.Get("Parameter1").Should().Be("RandomValue");
         }
 
         [Test]
@@ -164,7 +164,7 @@ namespace Symitar.Tests
         public void Parse_WithParameterWithNoValue_ShouldHaveParameterValueBlank()
         {
             var cmd = SymCommand.Parse("CommandMessage~Parameter1");
-            cmd.GetParam("Parameter1").Should().BeBlank();
+            cmd.Get("Parameter1").Should().BeBlank();
         }
 
         [Test]
