@@ -23,13 +23,14 @@ namespace Symitar
 
         public SymCommand()
         {
-            _parameters = new Dictionary<string, string>();
+            Initialize();
             _parameters.Add("MsgId", _msgId.ToString());
             _msgId++;
         }
 
         public SymCommand(string cmd)
         {
+            Initialize();
             Command = cmd;
             _parameters.Add("MsgId", _msgId.ToString());
             _msgId++;
@@ -37,6 +38,7 @@ namespace Symitar
 
         public SymCommand(string cmd, Dictionary<string, string> parms)
         {
+            Initialize();
             Command = cmd;
             _parameters = parms;
             _parameters.Add("MsgId", _msgId.ToString());
@@ -45,11 +47,19 @@ namespace Symitar
 
         public SymCommand(string cmd, Dictionary<string, string> parms, string data)
         {
+            Initialize();
             Command = cmd;
             _parameters = parms;
             Data = data;
             _parameters.Add("MsgId", _msgId.ToString());
             _msgId++;
+        }
+
+        private void Initialize()
+        {
+            Data = "";
+            Command = "";
+            _parameters = new Dictionary<string, string>();
         }
 
         public static SymCommand Parse(string message)
