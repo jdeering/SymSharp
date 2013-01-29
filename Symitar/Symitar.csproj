@@ -42,14 +42,17 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FileMaintenanceType.cs" />
     <Compile Include="FileType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ReportInfo.cs" />
     <Compile Include="RunStatus.cs" />
     <Compile Include="SpecfileError.cs" />
     <Compile Include="RepgenRunResult.cs" />
     <Compile Include="SymCommand.cs" />
     <Compile Include="File.cs" />
     <Compile Include="SymSession.cs" />
+    <Compile Include="SymSocket.cs" />
     <Compile Include="Utilities.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

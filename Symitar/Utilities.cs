@@ -70,5 +70,15 @@ namespace Symitar
             sym = sym.PadLeft(3, '0');
             return String.Format("/SYM/SYM{0}/{1}", sym, FileFolder[(int)type]);
         }
+
+        public static string DecodeString(byte[] bytes)
+        {
+            return Encoding.ASCII.GetString(bytes);
+        }
+
+        public static byte[] EncodeString(string str)
+        {
+            return Encoding.ASCII.GetBytes(str);
+        }
     }
 }

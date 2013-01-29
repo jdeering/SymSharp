@@ -53,6 +53,8 @@
     <Compile Include="RepgenRunResultTests.cs" />
     <Compile Include="SpecfileErrorTests.cs" />
     <Compile Include="SymCommandTests.cs" />
+    <Compile Include="SymSessionTests.cs" />
+    <Compile Include="SymSocketTests.cs" />
     <Compile Include="UtilitiesTests.cs" />
   </ItemGroup>
   <ItemGroup>

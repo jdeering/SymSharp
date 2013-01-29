@@ -176,5 +176,17 @@ namespace Symitar.Tests
                 () => Utilities.ContainingFolder(1000, FileType.Letter)
             );
         }
+
+        [Test]
+        public void EncodeString_EmptyString_ReturnsZeroLengthByArray()
+        {
+            Utilities.EncodeString("").Should().Equal(new byte[0]);
+        }
+
+        [Test]
+        public void DecodeString_EmptyArray_ReturnsEmptyString()
+        {
+            Utilities.DecodeString(new byte[0]).Should().BeBlank();
+        }
     }
 }
