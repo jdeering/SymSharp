@@ -16,7 +16,7 @@ namespace Symitar
         private const int DefaultTimeout = 5000;
         private const int KeepAliveInterval = 45000;
 
-        private TcpClient _client;
+        private ITcpAdapter _client;
         private NetworkStream _stream;
         private Thread _keepAliveThread;
         private DateTime _lastActivity;
@@ -48,6 +48,11 @@ namespace Symitar
             Initialize();
         }
 
+        public SymSocket(ITcpAdapter tcpClient)
+        {
+            Initialize(tcpClient);
+        }
+
         public SymSocket(string server, int port)
         {
             Initialize();
@@ -55,9 +60,16 @@ namespace Symitar
             Port = port;
         }
 
-        private void Initialize()
+        public SymSocket(ITcpAdapter tcpClient, string server, int port)
         {
-            _client = null;
+            Initialize(tcpClient);
+            Server = server;
+            Port = port;
+        }
+
+        private void Initialize(ITcpAdapter tcpClient = null)
+        {
+            _client = tcpClient;
             _stream = null;
             _keepAliveThread = null;
             _keepAliveActive = false;
@@ -75,6 +87,12 @@ namespace Symitar
 
         public bool Connect(string server, int port)
         {
+            if(string.IsNullOrEmpty(server))
+                throw new ArgumentNullException("server");
+
+            if(port <= 0)
+                throw new ArgumentOutOfRangeException("port");
+
             if(Connected) 
                 throw new InvalidOperationException("Client is already connected");
 
@@ -84,9 +102,18 @@ namespace Symitar
 
             try
             {
+                IPAddress ipAddress;
+                bool parseResult = IPAddress.TryParse(server, out ipAddress);
+
                 LockSocket(5000);
-                _client = new TcpClient();
-                _client.Connect(IPAddress.Parse(Server), Port);
+
+                if(_client == null) // Use default TcpAdapter implementation
+                    _client = new TcpAdapter();
+                
+                if(parseResult)
+                    _client.Connect(IPAddress.Parse(server), port);
+                else
+                    _client.Connect(server, port);
                 _stream = _client.GetStream();
             }
             catch (Exception ex)
@@ -100,7 +127,7 @@ namespace Symitar
             _lastActivity = DateTime.Now;
             UnlockSocket();
 
-            return Connected;
+            return true;
         }
 
         public void Disconnect()
