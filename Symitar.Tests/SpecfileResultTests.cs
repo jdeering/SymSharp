@@ -9,7 +9,7 @@ using FluentAssertions;
 namespace Symitar.Tests
 {
     [TestFixture]
-    public class SpecfileErrorTests
+    public class SpecfileResultTests
     {
         [Test]
         public void SpecfileError_None_DoesntFailCheck()
