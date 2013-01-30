@@ -12,35 +12,35 @@ namespace Symitar.Tests
     public class SpecfileResultTests
     {
         [Test]
-        public void SpecfileError_None_DoesntFailCheck()
+        public void SpecfileError_Success_DoesntFailCheck()
         {
             SpecfileResult result = SpecfileResult.Success();
             result.FailedCheck.Should().BeFalse();
         }
 
         [Test]
-        public void SpecfileError_NoneWithInstallSizeOver0_DoesntFailCheck()
+        public void SpecfileError_SuccessWithInstallSizeOver0_DoesntFailCheck()
         {
             SpecfileResult result = SpecfileResult.Success(100);
             result.FailedCheck.Should().BeFalse();
         }
 
         [Test]
-        public void SpecfileError_NoneWithInstallSize_HasCorrectInstallSize()
+        public void SpecfileError_SuccessWithInstallSize_HasCorrectInstallSize()
         {
             SpecfileResult result = SpecfileResult.Success(100);
             result.InstallSize.Should().Be(100);
         }
 
         [Test]
-        public void SpecfileError_NoneWithInstallSizeEqual0_FailsCheck()
+        public void SpecfileError_SuccessWithInstallSizeEqual0_FailsCheck()
         {
             SpecfileResult result = SpecfileResult.Success(0);
             result.FailedCheck.Should().BeTrue();
         }
 
         [Test]
-        public void SpecfileError_NoneWithInstallSizeUnder0_ThrowsException()
+        public void SpecfileError_SuccessWithInstallSizeUnder0_ThrowsException()
         {
             Assert.Throws<ArgumentOutOfRangeException>(
                 () =>
