@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -74,7 +75,7 @@ namespace Symitar.Tests
         }
 
         [Test]
-        public void Connect_SuccessfulConnection_NoError()
+        public void Connect_SuccessfulConnection_HasBlankError()
         {
             var tcpMock = MockRepository.GenerateMock<ITcpAdapter>();
 
@@ -91,6 +92,47 @@ namespace Symitar.Tests
             SymSocket socket = new SymSocket(tcpMock);
             bool result = socket.Connect("symitar", 23);
             result.Should().BeTrue();
+        }
+
+        [Test]
+        public void Connect_SuccessfulConnectionWithIpAddress_CallsHostNameConnectOnAdapter()
+        {
+            var tcpMock = MockRepository.GenerateMock<ITcpAdapter>();
+
+            SymSocket socket = new SymSocket(tcpMock);
+            socket.Connect("symitar", 23);
+            tcpMock.AssertWasCalled(x => x.Connect("symitar", 23));
+        }
+
+        [Test]
+        public void Connect_SuccessfulConnectionWithIpAddress_ReturnsTrue()
+        {
+            var tcpMock = MockRepository.GenerateMock<ITcpAdapter>();
+
+            SymSocket socket = new SymSocket(tcpMock);
+            bool result = socket.Connect("127.0.0.1", 23);
+            result.Should().BeTrue();
+        }
+
+        [Test]
+        public void Connect_SuccessfulConnectionWithIpAddress_CallsIpAddressConnectOnAdapter()
+        {
+            var ipAddress = IPAddress.Parse("127.0.0.1");
+            var tcpMock = MockRepository.GenerateMock<ITcpAdapter>();
+
+            SymSocket socket = new SymSocket(tcpMock);
+            socket.Connect("127.0.0.1", 23);
+            tcpMock.AssertWasCalled(x => x.Connect(ipAddress, 23));
+        }
+
+        [Test]
+        public void Disconnect_ClosesClient()
+        {
+            var tcpMock = MockRepository.GenerateMock<ITcpAdapter>();
+
+            SymSocket socket = new SymSocket(tcpMock);
+            socket.Disconnect();
+            tcpMock.AssertWasCalled(x => x.Close());
         }
 
         [Test]

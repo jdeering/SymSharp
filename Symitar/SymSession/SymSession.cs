@@ -83,6 +83,11 @@ namespace Symitar
             _socket.Disconnect();
         }
 
+        public bool Login(string aixUsername, string aixPassword, string symUserId)
+        {
+            return Login(aixUsername, aixPassword, SymDirectory, symUserId, 0);
+        }
+
         public bool Login(string aixUsername, string aixPassword, int directory, string symUserId)
         {
             return Login(aixUsername, aixPassword, directory, symUserId, 0);
@@ -104,7 +109,6 @@ namespace Symitar
 
             _error = "";
             SymDirectory = directory;
-
 
             //Telnet Handshake
             try
