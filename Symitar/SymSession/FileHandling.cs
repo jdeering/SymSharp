@@ -233,7 +233,7 @@ namespace Symitar
             return content;
         }
 
-        public SpecfileError FileCheck(Symitar.File file)
+        public SpecfileResult FileCheck(Symitar.File file)
         {
             if (file.Type != Symitar.FileType.RepGen)
                 throw new Exception("Cannot check a " + file.FileTypeString() + " file");
@@ -251,7 +251,7 @@ namespace Symitar
             if (cmd.Get("Action") == "NoError")
             {
                 _socket.ReadCommand();
-                return SpecfileError.None();
+                return SpecfileResult.None();
             }
 
             int errRow = 0, errCol = 0;
@@ -276,13 +276,13 @@ namespace Symitar
                 }
                 _socket.ReadCommand();
 
-                return new SpecfileError(file, errFile, errText, errRow, errCol);
+                return new SpecfileResult(file, errFile, errText, errRow, errCol);
             }
 
             throw new Exception("An unknown error occurred.");
         }
 
-        public SpecfileError FileInstall(Symitar.File file)
+        public SpecfileResult FileInstall(Symitar.File file)
         {
             if (file.Type != Symitar.FileType.RepGen)
                 throw new Exception("Cannot Install a " + file.FileTypeString() + " File");
@@ -303,7 +303,7 @@ namespace Symitar
                 _socket.ReadCommand();
                 _socket.Write("1\r");
                 _socket.ReadCommand(); _socket.ReadCommand();
-                return SpecfileError.None(int.Parse(cmd.Get("Size").Replace(",", "")));
+                return SpecfileResult.None(int.Parse(cmd.Get("Size").Replace(",", "")));
             }
 
             int errRow = 0, errCol = 0;
@@ -325,7 +325,7 @@ namespace Symitar
                 }
                 _socket.ReadCommand();
 
-                return new SpecfileError(file, errFile, errText, errRow, errCol);
+                return new SpecfileResult(file, errFile, errText, errRow, errCol);
             }
 
             throw new Exception("Unknown Install Error");

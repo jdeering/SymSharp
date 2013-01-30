@@ -3,7 +3,7 @@ using System.Text;
 
 namespace Symitar
 {
-    public class SpecfileError
+    public class SpecfileResult
     {
         private Symitar.File _sourceFile;
         public Symitar.File Specfile
@@ -44,7 +44,7 @@ namespace Symitar
             get { return InvalidInstall || _errorLine > 0; }
         }
 
-        public SpecfileError(Symitar.File specfile, string fileError, string message, int line, int col)
+        public SpecfileResult(Symitar.File specfile, string fileError, string message, int line, int col)
         {
             _sourceFile = specfile;
             _fileError = fileError;
@@ -54,23 +54,24 @@ namespace Symitar
             InvalidInstall = false;
         }
 
-        public static SpecfileError None()
+        public static SpecfileResult None()
         {
-            SpecfileError error = new SpecfileError(null, "", "", 0, 0);
-            return error;
+            SpecfileResult result = new SpecfileResult(null, "", "", 0, 0);
+            return result;
         }
 
-        public static SpecfileError None(int size)
+        public static SpecfileResult None(int size)
         {
             if(size < 0)
                 throw new ArgumentOutOfRangeException("size", "Specfile install size cannot be less than 0.");
 
-            SpecfileError ret = new SpecfileError(null, "", "", 0, 0);
-            ret.InstallSize = size;
+            SpecfileResult result = new SpecfileResult(null, "", "", 0, 0);
+            result.InstallSize = size;
 
-            if (size == 0) ret.InvalidInstall = true;
+            if (size == 0) 
+                result.InvalidInstall = true;
 
-            return ret;
+            return result;
         }
     }
 }
