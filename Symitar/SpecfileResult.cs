@@ -54,13 +54,13 @@ namespace Symitar
             InvalidInstall = false;
         }
 
-        public static SpecfileResult None()
+        public static SpecfileResult Success()
         {
             SpecfileResult result = new SpecfileResult(null, "", "", 0, 0);
             return result;
         }
 
-        public static SpecfileResult None(int size)
+        public static SpecfileResult Success(int size)
         {
             if(size < 0)
                 throw new ArgumentOutOfRangeException("size", "Specfile install size cannot be less than 0.");

@@ -251,7 +251,7 @@ namespace Symitar
             if (cmd.Get("Action") == "NoError")
             {
                 _socket.ReadCommand();
-                return SpecfileResult.None();
+                return SpecfileResult.Success();
             }
 
             int errRow = 0, errCol = 0;
@@ -303,7 +303,7 @@ namespace Symitar
                 _socket.ReadCommand();
                 _socket.Write("1\r");
                 _socket.ReadCommand(); _socket.ReadCommand();
-                return SpecfileResult.None(int.Parse(cmd.Get("Size").Replace(",", "")));
+                return SpecfileResult.Success(int.Parse(cmd.Get("Size").Replace(",", "")));
             }
 
             int errRow = 0, errCol = 0;
