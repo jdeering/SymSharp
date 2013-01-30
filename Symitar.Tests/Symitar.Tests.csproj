@@ -51,6 +51,7 @@
     <Compile Include="FileTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RepgenRunResultTests.cs" />
+    <Compile Include="ReportInfoTests.cs" />
     <Compile Include="SpecfileResultTests.cs" />
     <Compile Include="SymCommandTests.cs" />
     <Compile Include="SymSessionTests.cs" />
