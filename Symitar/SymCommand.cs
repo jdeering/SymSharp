@@ -7,7 +7,7 @@ using Symitar.Interfaces;
 
 namespace Symitar
 {
-    public class SymCommand : ISymCommand
+    internal class SymCommand : ISymCommand
     {
         public string Command { get; set; }
         public string Data { get; set; }

@@ -11,7 +11,7 @@ namespace Symitar
 {
     // Wraps TCP Client to connect
     // to Symitar. Used by SymSession.
-    public class SymSocket : ISymSocket
+    internal class SymSocket : ISymSocket
     {
         private const int DefaultTimeout = 5000;
         private const int KeepAliveInterval = 45000;
