@@ -8,7 +8,7 @@ namespace Symitar
 {
     public partial class SymSession
     {
-        public int GetFMSequence(string title)
+        public int GetFileMaintenanceSequence(string title)
         {
             List<int> seqs = GetPrintSequences("MISCFMPOST");
             foreach (int i in seqs)
