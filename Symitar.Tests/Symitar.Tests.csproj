@@ -54,7 +54,8 @@
     <Compile Include="ReportInfoTests.cs" />
     <Compile Include="SpecfileResultTests.cs" />
     <Compile Include="SymCommandTests.cs" />
-    <Compile Include="SymSessionTests.cs" />
+    <Compile Include="SymSession\FileHandlingTests.cs" />
+    <Compile Include="SymSession\SymSessionTests.cs" />
     <Compile Include="SymSocketTests.cs" />
     <Compile Include="UtilitiesTests.cs" />
   </ItemGroup>
