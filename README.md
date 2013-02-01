@@ -12,6 +12,15 @@ Quick start options available:
 * Download from [SourceForge](https://sourceforge.net/projects/symsharp/).
 
 
+## .NET Version Support
+
+SymSharp supports the following platforms:
+
+* .NET 4.0 and higher
+* Silverlight 4 and higher
+* Windows Phone 7 and higher
+* .NET for Windows Store apps
+
 
 ## Versioning
 
