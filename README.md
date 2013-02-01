@@ -10,6 +10,7 @@ Quick start options available:
 
 * Clone the repo: `git clone git://github.com/jdeering/SymSharp.git`.
 * Download from [SourceForge](https://sourceforge.net/projects/symsharp/).
+* Install the [NuGet package](http://nuget.org/packages/SymSharp/1.0.0.0)
 
 
 ## .NET Version Support
