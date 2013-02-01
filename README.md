@@ -2,8 +2,6 @@
 SymSharp
 =====
 Symitar RAS Library in C#
------
-
 
 
 ## Quick start
