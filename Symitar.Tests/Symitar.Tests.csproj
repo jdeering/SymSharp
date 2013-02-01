@@ -56,6 +56,7 @@
     <Compile Include="SymCommandTests.cs" />
     <Compile Include="SymSession\FileHandlingTests.cs" />
     <Compile Include="SymSession\FileMaintenanceTests.cs" />
+    <Compile Include="SymSession\RunReportTests.cs" />
     <Compile Include="SymSession\SymSessionTests.cs" />
     <Compile Include="SymSocketTests.cs" />
     <Compile Include="UtilitiesTests.cs" />

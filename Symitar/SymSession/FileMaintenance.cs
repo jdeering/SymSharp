@@ -96,7 +96,6 @@ namespace Symitar
                     string timeStr = cmd.Get("Time");
 
                     string[] tokens = timeStr.Split(':');
-
                     string seconds = tokens[2], minutes = tokens[1], hours = tokens[0];
 
                     currTime = int.Parse(seconds);

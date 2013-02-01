@@ -13,6 +13,9 @@ namespace Symitar
 
         public bool IsFileRunning(int sequence)
         {
+            if(sequence <= 0)
+                throw new ArgumentOutOfRangeException("sequence");
+
             ISymCommand cmd;
             bool running = false;
 
@@ -68,9 +71,12 @@ namespace Symitar
                 {
                     contents = contents.Substring(beganIndex + 41);
                     string timeStr = contents.Substring(0, 8);
-                    int currTime = int.Parse(timeStr.Substring(timeStr.LastIndexOf(':') + 1));
-                    currTime += 60 * int.Parse(timeStr.Substring(timeStr.IndexOf(':') + 1, 2));
-                    currTime += 3600 * int.Parse(timeStr.Substring(0, timeStr.IndexOf(':')));
+                    string[] tokens = timeStr.Split(':');
+                    string seconds = tokens[2], minutes = tokens[1], hours = tokens[0];
+
+                    int currTime = int.Parse(seconds);
+                    currTime += 60 * int.Parse(minutes);
+                    currTime += 3600 * int.Parse(hours);
                     contents = contents.Substring(contents.IndexOf("(newline when done):") + 21);
 
                     string name = contents.Substring(0, contents.IndexOf('\n'));
@@ -85,7 +91,7 @@ namespace Symitar
         public RepgenRunResult FileRun(Symitar.File file, FileRunStatus callStatus, FileRunPrompt callPrompt, int queue)
         {
             if (file.Type != Symitar.FileType.RepGen)
-                throw new Exception("Cannot Run a " + file.FileTypeString() + " File");
+                throw new InvalidOperationException("Cannot run a " + file.FileTypeString() + " file");
 
             ISymCommand cmd;
             callStatus(0, "Initializing...");
