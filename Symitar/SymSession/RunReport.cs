@@ -8,9 +8,9 @@ namespace Symitar
 {
     public partial class SymSession
     {
-        public delegate void FileRun_Status(int code, string description);
-        public delegate string FileRun_Prompt(string prompt);
-        //------------------------------------------------------------------------
+        public delegate void FileRunStatus(int code, string description);
+        public delegate string FileRunPrompt(string prompt);
+
         public bool IsFileRunning(int sequence)
         {
             ISymCommand cmd;
@@ -30,7 +30,7 @@ namespace Symitar
 
             return running;
         }
-        //------------------------------------------------------------------------
+
         private List<int> GetPrintSequences(string which)
         {
             List<int> seqs = new List<int>();
@@ -55,7 +55,7 @@ namespace Symitar
             seqs.Reverse();
             return seqs;
         }
-        //------------------------------------------------------------------------
+
         public int GetReportSequence(string repName, int time)
         {
             List<int> seqs = GetPrintSequences("REPWRITER");
@@ -81,8 +81,8 @@ namespace Symitar
             }
             return -1;
         }
-        //------------------------------------------------------------------------
-        public RepgenRunResult FileRun(Symitar.File file, FileRun_Status callStatus, FileRun_Prompt callPrompt, int queue)
+
+        public RepgenRunResult FileRun(Symitar.File file, FileRunStatus callStatus, FileRunPrompt callPrompt, int queue)
         {
             if (file.Type != Symitar.FileType.RepGen)
                 throw new Exception("Cannot Run a " + file.FileTypeString() + " File");
@@ -188,26 +188,8 @@ namespace Symitar
                 cmd = _socket.ReadCommand();
             }
 
-            callStatus(7, "Getting Queue Counts");
-            cmd = new SymCommand("Misc");
-            cmd.Set("InfoType", "BatchQueues");
-            _socket.Write(cmd);
-
-            cmd = _socket.ReadCommand();
-            while (!cmd.HasParameter("Done"))
-            {
-                if ((cmd.Get("Action") == "QueueEntry") && (cmd.Get("Stat") == "Running"))
-                    queAvailable[int.Parse(cmd.Get("Queue"))]++;
-                cmd = _socket.ReadCommand();
-            }
-
-            if (queue == -1) //auto select lowest pending queue, or last available Zero queue
-            {
-                queue = 0;
-                foreach (KeyValuePair<int, int> Q in queAvailable)
-                    if (Q.Value <= queAvailable[queue])
-                        queue = Q.Key;
-            }
+            if (queue < 0)
+                queue = GetQueue(callStatus);
 
             _socket.Write(queue.ToString() + "\r");
             cmd = _socket.ReadCommand();
