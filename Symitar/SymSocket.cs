@@ -21,7 +21,7 @@ namespace Symitar
         private Thread _keepAliveThread;
         private DateTime _lastActivity;
         private bool _keepAliveActive;
-        private Semaphore _clientLock;
+        private ISocketSemaphore _clientLock;
 
         public string Server { get; set; }
         public int Port { get; set; }
@@ -53,6 +53,11 @@ namespace Symitar
             Initialize(tcpClient);
         }
 
+        public SymSocket(ITcpAdapter tcpClient, ISocketSemaphore socketLock)
+        {
+            Initialize(tcpClient, socketLock);
+        }
+
         public SymSocket(string server, int port)
         {
             Initialize();
@@ -77,7 +82,20 @@ namespace Symitar
             Server = "";
             _lastError = "";
             _active = false;
-            _clientLock = new Semaphore(1, 1);
+            _clientLock = new SocketLock();
+        }
+
+        private void Initialize(ITcpAdapter tcpClient, ISocketSemaphore semaphore)
+        {
+            _client = tcpClient;
+            _stream = null;
+            _keepAliveThread = null;
+            _keepAliveActive = false;
+
+            Server = "";
+            _lastError = "";
+            _active = false;
+            _clientLock = semaphore;
         }
 
         public bool Connect()

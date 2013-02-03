@@ -44,12 +44,14 @@
   <ItemGroup>
     <Compile Include="FileMaintenanceType.cs" />
     <Compile Include="FileType.cs" />
+    <Compile Include="Interfaces\ISocketSemaphore.cs" />
     <Compile Include="Interfaces\ISymCommand.cs" />
     <Compile Include="Interfaces\ISymSocket.cs" />
     <Compile Include="Interfaces\ITcpAdapter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ReportInfo.cs" />
     <Compile Include="RunStatus.cs" />
+    <Compile Include="SocketLock.cs" />
     <Compile Include="SpecfileResult.cs" />
     <Compile Include="RepgenRunResult.cs" />
     <Compile Include="SymCommand.cs" />

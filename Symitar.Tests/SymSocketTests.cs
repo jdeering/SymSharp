@@ -53,6 +53,30 @@ namespace Symitar.Tests
         }
 
         [Test]
+        public void Connect_LockFails_ReturnsFalse()
+        {
+            var tcpMock = MockRepository.GenerateMock<ITcpAdapter>();
+            var semaphoreMock = MockRepository.GenerateMock<ISocketSemaphore>();
+            semaphoreMock.Stub(x => x.WaitOne(5000)).Return(false);
+
+            SymSocket socket = new SymSocket(tcpMock, semaphoreMock);
+            bool result = socket.Connect("symitar", 23);
+            result.Should().BeFalse();
+        }
+
+        [Test]
+        public void Connect_LockFails_HasError()
+        {
+            var tcpMock = MockRepository.GenerateMock<ITcpAdapter>();
+            var semaphoreMock = MockRepository.GenerateMock<ISocketSemaphore>();
+            semaphoreMock.Stub(x => x.WaitOne(5000)).Return(false);
+
+            SymSocket socket = new SymSocket(tcpMock, semaphoreMock);
+            socket.Connect("symitar", 23);
+            socket.Error.Should().Contain("Unable to Connect to Server");
+        }
+
+        [Test]
         public void Connect_ClientConnectException_ReturnsFalse()
         {
             var tcpMock = MockRepository.GenerateMock<ITcpAdapter>();
