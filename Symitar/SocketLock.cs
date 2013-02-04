@@ -7,6 +7,7 @@ using Symitar.Interfaces;
 
 namespace Symitar
 {
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     public class SocketLock : ISocketSemaphore
     {
         private Semaphore _lock;

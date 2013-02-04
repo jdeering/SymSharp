@@ -10,6 +10,7 @@ namespace Symitar
 {
     // Wrapper for the native TcpClient.
     // Allows it to be mocked in unit tests.
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     internal class TcpAdapter : ITcpAdapter
     {
         private TcpClient _client;
