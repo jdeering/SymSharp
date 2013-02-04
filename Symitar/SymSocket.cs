@@ -21,7 +21,7 @@ namespace Symitar
         private Thread _keepAliveThread;
         private DateTime _lastActivity;
         private bool _keepAliveActive;
-        private Semaphore _clientLock;
+        private ISocketSemaphore _clientLock;
 
         public string Server { get; set; }
         public int Port { get; set; }
@@ -53,6 +53,11 @@ namespace Symitar
             Initialize(tcpClient);
         }
 
+        public SymSocket(ITcpAdapter tcpClient, ISocketSemaphore socketLock)
+        {
+            Initialize(tcpClient, socketLock);
+        }
+
         public SymSocket(string server, int port)
         {
             Initialize();
@@ -77,7 +82,20 @@ namespace Symitar
             Server = "";
             _lastError = "";
             _active = false;
-            _clientLock = new Semaphore(1, 1);
+            _clientLock = new SocketLock();
+        }
+
+        private void Initialize(ITcpAdapter tcpClient, ISocketSemaphore semaphore)
+        {
+            _client = tcpClient;
+            _stream = null;
+            _keepAliveThread = null;
+            _keepAliveActive = false;
+
+            Server = "";
+            _lastError = "";
+            _active = false;
+            _clientLock = semaphore;
         }
 
         public bool Connect()
@@ -375,13 +393,6 @@ namespace Symitar
         {
             if (_keepAliveThread == null) return;
 
-            /***** this was seriously slowing down application exit, waiting 2s per connection ****
-            //attempt to let thread die naturally
-            _keepAliveActive = false;
-            Thread.Sleep(2000);
-            */
-
-            //now force thread to terminate
             try
             {
                 _keepAliveThread.Abort();
@@ -393,7 +404,7 @@ namespace Symitar
 
             _keepAliveThread = null;
         }
-        //------------------------------------------------------------------------
+
         private void KeepAlive()
         {
             int oto = _stream.WriteTimeout;
@@ -423,8 +434,7 @@ namespace Symitar
                         }
                         catch (Exception)
                         {
-                            //failed in LockSocket, must be in use.
-                            //no need to complain
+                            // Failed to lock, must be in use.
                         }
                     }
 
