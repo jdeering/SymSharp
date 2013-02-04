@@ -393,13 +393,6 @@ namespace Symitar
         {
             if (_keepAliveThread == null) return;
 
-            /***** this was seriously slowing down application exit, waiting 2s per connection ****
-            //attempt to let thread die naturally
-            _keepAliveActive = false;
-            Thread.Sleep(2000);
-            */
-
-            //now force thread to terminate
             try
             {
                 _keepAliveThread.Abort();
@@ -411,7 +404,7 @@ namespace Symitar
 
             _keepAliveThread = null;
         }
-        //------------------------------------------------------------------------
+
         private void KeepAlive()
         {
             int oto = _stream.WriteTimeout;
@@ -441,8 +434,7 @@ namespace Symitar
                         }
                         catch (Exception)
                         {
-                            //failed in LockSocket, must be in use.
-                            //no need to complain
+                            // Failed to lock, must be in use.
                         }
                     }
 
