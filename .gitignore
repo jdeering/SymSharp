@@ -11,5 +11,5 @@ UpgradeLog.*
 *.suo
 *.user
 *.DotSettings
-Symitar.dll.nuspec
-SymSharp.1.0.0.0.nupkg
+*.nuspec
+*.nupkg
