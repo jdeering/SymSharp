@@ -17,9 +17,9 @@ namespace Symitar
             _lock = new Semaphore(1, 1);
         }
 
-        public SocketLock(int initialCount, int maximumCount)
+        public SocketLock(int maximumCount)
         {
-            _lock = new Semaphore(initialCount, maximumCount);
+            _lock = new Semaphore(maximumCount, maximumCount);
         }
 
         public bool WaitOne(int timeout)

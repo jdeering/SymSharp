@@ -235,7 +235,7 @@ namespace Symitar
 
             while (read < size)
             {
-                if ((DateTime.Now - begin).Milliseconds > timeout)
+                if ((DateTime.Now - begin).TotalMilliseconds > timeout)
                 {
                     UnlockSocket();
                     Disconnect();
@@ -269,7 +269,7 @@ namespace Symitar
 
             while (!hit)
             {
-                if ((DateTime.Now - begin).Milliseconds > timeout)
+                if ((DateTime.Now - begin).TotalMilliseconds > timeout)
                 {
                     UnlockSocket();
                     Disconnect();
@@ -347,7 +347,8 @@ namespace Symitar
             DateTime startTime = DateTime.Now;
             while (!matchFound)
             {
-                if ((DateTime.Now - startTime).Milliseconds > timeout)
+                var timeSpan = (DateTime.Now - startTime).TotalMilliseconds;
+                if (timeSpan > timeout)
                 {
                     UnlockSocket();
                     Disconnect();
@@ -429,6 +430,7 @@ namespace Symitar
                             }
                             catch (Exception)
                             {
+                                UnlockSocket();
                                 Disconnect();
                             }
                         }
