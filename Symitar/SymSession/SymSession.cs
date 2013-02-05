@@ -181,7 +181,7 @@ namespace Symitar
                     _socket.ReadUntil("[c", 1000);
                 }
             }
-            catch (Exception ex)
+            catch
             {
                 return false;
             }
