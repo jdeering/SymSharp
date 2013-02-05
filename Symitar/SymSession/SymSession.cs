@@ -80,7 +80,8 @@ namespace Symitar
 
         public void Disconnect()
         {
-            _socket.Disconnect();
+            if(_socket != null)
+                _socket.Disconnect();
         }
 
         public bool Login(string aixUsername, string aixPassword, string symUserId)
