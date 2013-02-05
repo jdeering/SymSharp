@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>SymSharp</id>
+    <version>$version$</version>
+    <authors>$author$</authors>
+    <owners>$author$</owners>
+    <licenseUrl>http://www.gnu.org/licenses/gpl-3.0.txt</licenseUrl>
+    <projectUrl>https://github.com/jdeering/SymSharp</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>$description$</description>
+    <releaseNotes>Strongly signed</releaseNotes>
+    <copyright>Copyright 2013</copyright>
+    <tags>symitar poweron repgen ras symsharp</tags>
+  </metadata>
+</package>
