@@ -36,4 +36,4 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyFileVersion("1.0.0.0")]
 
 // Exposing internals to the test framework
-[assembly: InternalsVisibleTo("Symitar.Tests")]
+[assembly: InternalsVisibleTo("Symitar.Tests, PublicKey=0024000004800000940000000602000000240000525341310004000001000100ef2b2169dab3fbc5da1088266a3850650207aff73236c61d936528f310894ce2b5b2ef175b2dae3ad5e0dab6b1f4ef67392e4ee810e6813c1780b298af766bc907ac42ffccda21b15cd92fcce5c7d6bfd51a140669eaa4f171470bf1dbd039ff7f14fc151bd614cc468999ede691d1d8d56932ab2f7c8300ffbf18e3adb186ba")]

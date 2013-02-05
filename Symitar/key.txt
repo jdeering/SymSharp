@@ -1,0 +1,12 @@
+
+Microsoft (R) .NET Framework Strong Name Utility  Version 3.5.30729.1
+Copyright (c) Microsoft Corporation.  All rights reserved.
+
+Public key is
+0024000004800000940000000602000000240000525341310004000001000100ef2b2169dab3fb
+c5da1088266a3850650207aff73236c61d936528f310894ce2b5b2ef175b2dae3ad5e0dab6b1f4
+ef67392e4ee810e6813c1780b298af766bc907ac42ffccda21b15cd92fcce5c7d6bfd51a140669
+eaa4f171470bf1dbd039ff7f14fc151bd614cc468999ede691d1d8d56932ab2f7c8300ffbf18e3
+adb186ba
+
+Public key token is d1499deb6e5cfe47
