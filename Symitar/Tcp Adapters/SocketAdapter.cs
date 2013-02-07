@@ -153,7 +153,10 @@ namespace Symitar
 
 
             string result = _workingData.Substring(0, end);
-            _workingData = _workingData.Substring(end + 1);
+            if (_workingData.Length > end)
+                _workingData = _workingData.Substring(end + 1);
+            else
+                _workingData = "";
             return result;
         }
 
