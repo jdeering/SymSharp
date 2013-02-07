@@ -146,7 +146,11 @@ namespace Symitar
 
         public string ReadTo(string data)
         {
+            if (_workingData.IndexOf(data) < 0) 
+                return string.Empty;
+
             var end = _workingData.IndexOf(data) + data.Length;
+
 
             string result = _workingData.Substring(0, end);
             _workingData = _workingData.Substring(end + 1);

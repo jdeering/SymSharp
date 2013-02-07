@@ -195,6 +195,8 @@ namespace Symitar
             _client.ReadTo(new byte[] { 0x1B, 0xFE });
             string data = _client.ReadTo(new byte[] { 0xFC });
 
+            if(data.Length == 0) return SymCommand.Parse("");
+
             ISymCommand cmd = SymCommand.Parse(data.Substring(0, data.Length - 1));
             if ((cmd.Command == "MsgDlg") && (cmd.HasParameter("Text")))
                 if (cmd.Get("Text").IndexOf("From PID") != -1)
@@ -204,15 +206,41 @@ namespace Symitar
 
         public int WaitFor(string matcher)
         {
-            throw new NotImplementedException();
+            var startTime = DateTime.Now;
+
+            var data = _client.ReadTo(matcher);
+            while (string.IsNullOrEmpty(data))
+            {
+                if ((DateTime.Now - startTime).TotalMilliseconds > DefaultTimeout)
+                {
+                    throw new TimeoutException("Timed out waiting for "+matcher);
+                }
+
+                data = _client.ReadTo(matcher);
+            }
+
+            return 0;
         }
 
         public int WaitFor(List<string> matchers)
         {
-            if(matchers.Count == 0)
-                throw new ArgumentException("matchers");
+            var startTime = DateTime.Now;
 
-            return -1;
+            while (true)
+            {
+                if ((DateTime.Now - startTime).TotalMilliseconds > DefaultTimeout)
+                {
+                    throw new TimeoutException("Timed out waiting for " + matchers);
+                }
+
+                for (var i = 0; i < matchers.Count; i++)
+                {
+                    var data = _client.ReadTo(matchers[i]);
+                    if (!string.IsNullOrEmpty(data)) 
+                        return i;
+                }
+
+            }
         }
 
         public void KeepAliveStart()
