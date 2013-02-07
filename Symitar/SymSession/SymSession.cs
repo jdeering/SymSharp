@@ -178,6 +178,8 @@ namespace Symitar
                         return false;
                     }
 
+                    if (stat.Contains("[c")) return true;
+
                     _socket.WaitFor("[c");
                 }
             }
