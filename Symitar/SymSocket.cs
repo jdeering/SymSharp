@@ -192,7 +192,14 @@ namespace Symitar
 
         public ISymCommand ReadCommand()
         {
-            throw new NotImplementedException();
+            _client.ReadTo(new byte[] { 0x1B, 0xFE });
+            string data = _client.ReadTo(new byte[] { 0xFC });
+
+            ISymCommand cmd = SymCommand.Parse(data.Substring(0, data.Length - 1));
+            if ((cmd.Command == "MsgDlg") && (cmd.HasParameter("Text")))
+                if (cmd.Get("Text").IndexOf("From PID") != -1)
+                    cmd = ReadCommand();
+            return cmd;
         }
 
         public int WaitFor(string matcher)

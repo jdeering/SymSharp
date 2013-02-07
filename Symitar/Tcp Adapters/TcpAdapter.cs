@@ -49,5 +49,15 @@ namespace Symitar
         {
             throw new NotImplementedException();
         }
+
+        public string ReadTo(string data)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string ReadTo(byte[] data)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

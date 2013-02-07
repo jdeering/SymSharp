@@ -143,5 +143,19 @@ namespace Symitar
             _workingData = "";
             return data;
         }
+
+        public string ReadTo(string data)
+        {
+            var end = _workingData.IndexOf(data) + data.Length;
+
+            string result = _workingData.Substring(0, end);
+            _workingData = _workingData.Substring(end + 1);
+            return result;
+        }
+
+        public string ReadTo(byte[] data)
+        {
+            return ReadTo(Encoding.ASCII.GetString(data));
+        }
     }
 }
