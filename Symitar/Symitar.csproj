@@ -71,7 +71,8 @@
     <Compile Include="SymSession\RunReport.cs" />
     <Compile Include="SymSession\SymSession.cs" />
     <Compile Include="SymSocket.cs" />
-    <Compile Include="TcpAdapter.cs" />
+    <Compile Include="Tcp Adapters\TcpAdapter.cs" />
+    <Compile Include="Tcp Adapters\SocketAdapter.cs" />
     <Compile Include="Utilities.cs" />
   </ItemGroup>
   <ItemGroup>

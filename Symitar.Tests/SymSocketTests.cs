@@ -139,17 +139,6 @@ namespace Symitar.Tests
         }
 
         [Test]
-        public void Connect_SuccessfulConnectionWithIpAddress_CallsIpAddressConnectOnAdapter()
-        {
-            var ipAddress = IPAddress.Parse("127.0.0.1");
-            var tcpMock = MockRepository.GenerateMock<ITcpAdapter>();
-
-            SymSocket socket = new SymSocket(tcpMock);
-            socket.Connect("127.0.0.1", 23);
-            tcpMock.AssertWasCalled(x => x.Connect(ipAddress, 23));
-        }
-
-        [Test]
         public void Disconnect_ClosesClient()
         {
             var tcpMock = MockRepository.GenerateMock<ITcpAdapter>();
@@ -167,21 +156,8 @@ namespace Symitar.Tests
                     {
                         var socket = new SymSocket();
 
-                        socket.ReadUntil(new List<byte[]>(), 1);
+                        socket.WaitFor(new List<string>());
                     }
-                );
-        }
-
-        [Test]
-        public void ReadUntilMultiMatch_ZeroTimeout_ThrowsArugmentException()
-        {
-            Assert.Throws<ArgumentOutOfRangeException>(
-                () =>
-                {
-                    var socket = new SymSocket();
-
-                    socket.ReadUntil(new List<byte[]>(){ new byte[1] }, 0);
-                }
                 );
         }
     }

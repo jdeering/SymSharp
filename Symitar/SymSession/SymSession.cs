@@ -114,10 +114,10 @@ namespace Symitar
             //Telnet Handshake
             try
             {
-                _socket.Write(new byte[] { 0xFF, 0xFB, 0x18 }, 1000);
-                _socket.Write(new byte[] { 0xFF, 0xFA, 0x18, 0x00, 0x61, 0x69, 0x78, 0x74, 0x65, 0x72, 0x6D, 0xFF, 0xF0 }, 1000);
-                _socket.Write(new byte[] { 0xFF, 0xFD, 0x01 }, 1000);
-                _socket.Write(new byte[] { 0xFF, 0xFD, 0x03, 0xFF, 0xFC, 0x1F, 0xFF, 0xFC, 0x01 }, 1000);
+                _socket.Write(new byte[] { 0xFF, 0xFB, 0x18 });
+                _socket.Write(new byte[] { 0xFF, 0xFA, 0x18, 0x00, 0x61, 0x69, 0x78, 0x74, 0x65, 0x72, 0x6D, 0xFF, 0xF0 });
+                _socket.Write(new byte[] { 0xFF, 0xFD, 0x01 });
+                _socket.Write(new byte[] { 0xFF, 0xFD, 0x03, 0xFF, 0xFC, 0x1F, 0xFF, 0xFC, 0x01 });
             }
             catch (Exception ex)
             {
@@ -155,10 +155,10 @@ namespace Symitar
                 string stat;
                 byte[] data;
 
-                _socket.Write(username + '\r', 1000);
+                _socket.Write(username + '\r');
 
-                data = _socket.ReadUntil(new List<string> { "Password:", "[c" }, 1000);
-                stat = Utilities.DecodeString(data);
+                _socket.WaitFor(new List<string> { "Password:", "[c" });
+                stat = _socket.Read();
 
                 if (stat.IndexOf("[c") == -1)
                 {
@@ -168,9 +168,9 @@ namespace Symitar
                         return false;
                     }
 
-                    _socket.Write(password + '\r', 1000);
-                    data = _socket.ReadUntil(":", 1000);
-                    stat = Utilities.DecodeString(data);
+                    _socket.Write(password + '\r');
+                    _socket.WaitFor(":");
+                    stat = _socket.Read();
 
                     if (stat.IndexOf("invalid login") != -1)
                     {
@@ -178,11 +178,12 @@ namespace Symitar
                         return false;
                     }
 
-                    _socket.ReadUntil("[c", 1000);
+                    _socket.WaitFor("[c");
                 }
             }
-            catch
+            catch(Exception ex)
             {
+                var e = ex;
                 return false;
             }
             
@@ -191,13 +192,11 @@ namespace Symitar
 
         private bool SymLogin(int symDir, string userPassword)
         {
-            _socket.Write("WINDOWSLEVEL=3\n", 1000);
-            _socket.ReadUntil("$ ", 1000);
-            _socket.Write(
-                String.Format("sym {0}\r", symDir), 
-                1000);
+            _socket.Write("WINDOWSLEVEL=3\n");
+            _socket.WaitFor("$ ");
+            _socket.Write(String.Format("sym {0}\r", symDir));
 
-            ISymCommand cmd = _socket.ReadCommand(2000);
+            ISymCommand cmd = _socket.ReadCommand();
 
             while (cmd.Command != "Input")
             {
@@ -207,21 +206,21 @@ namespace Symitar
                     return false;
                 }
 
-                cmd = _socket.ReadCommand(2000);
+                cmd = _socket.ReadCommand();
                 if ((cmd.Command == "Input") && (cmd.Get("HelpCode") == "10025"))
                 {
                     _socket.Write("$WinHostSync$\r");
-                    cmd = _socket.ReadCommand(2000);
+                    cmd = _socket.ReadCommand();
                 }
             }
 
-            _socket.Write(String.Format("{0}\r", symDir), 1000);
-            cmd = _socket.ReadCommand(2000);
+            _socket.Write(String.Format("{0}\r", symDir));
+            cmd = _socket.ReadCommand();
             if (cmd.Command == "SymLogonInvalidUser")
             {
                 _error = "Invalid Sym User";
-                _socket.Write("\r", 1000);
-                _socket.ReadCommand(2000);
+                _socket.Write("\r");
+                _socket.ReadCommand();
                 return false;
             }
             if (cmd.Command == "SymLogonError" && cmd.Get("Text").IndexOf("Too Many Invalid Password Attempts") > -1)
@@ -230,8 +229,8 @@ namespace Symitar
                 return false;
             }
 
-            _socket.Write("\r", 1000); _socket.ReadCommand(2000);
-            _socket.Write("\r", 1000); _socket.ReadCommand(2000);
+            _socket.Write("\r"); _socket.ReadCommand();
+            _socket.Write("\r"); _socket.ReadCommand();
 
             return true;
         }

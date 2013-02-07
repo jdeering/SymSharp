@@ -141,11 +141,11 @@ namespace Symitar.Tests
         {
             var socketMock = MockRepository.GenerateStub<ISymSocket>();
             socketMock.Stub(x => x.Connected).Return(true);
-            socketMock.Stub(x => x.ReadUntil(new List<string> {"Password:", "[c"}, 1000))
-                      .Return(Encoding.ASCII.GetBytes("Password: "));
-            socketMock.Stub(x => x.ReadUntil(":", 1000))
-                      .Return(Encoding.ASCII.GetBytes("$ "));
-            socketMock.Stub(x => x.ReadCommand(2000))
+            socketMock.Stub(x => x.WaitFor(new List<string> { "Password:", "[c" })).Return(0);
+            socketMock.Stub(x => x.Read()).Return("Password:").Repeat.Once();
+            socketMock.Stub(x => x.WaitFor(":")).Return(0);
+            socketMock.Stub(x => x.Read()).Return(":").Repeat.Once();
+            socketMock.Stub(x => x.ReadCommand())
                       .Return(new SymCommand("Input", new Dictionary<string, string> {{"HelpCode", "10025"}}));
 
             SymSession session = new SymSession(socketMock, 10);
@@ -158,8 +158,8 @@ namespace Symitar.Tests
         {
             var socketMock = MockRepository.GenerateStub<ISymSocket>();
             socketMock.Stub(x => x.Connected).Return(true);
-            socketMock.Stub(x => x.ReadUntil(new List<string> { "Password:", "[c" }, 1000))
-                      .Return(Encoding.ASCII.GetBytes("invalid login"));
+            socketMock.Stub(x => x.WaitFor(new List<string> { "Password:", "[c" })).Return(0);
+            socketMock.Stub(x => x.Read()).Return("invalid login");
 
             SymSession session = new SymSession(socketMock, 10);
             session.Login("bob", "dole", "bobdole");
@@ -171,8 +171,8 @@ namespace Symitar.Tests
         {
             var socketMock = MockRepository.GenerateStub<ISymSocket>();
             socketMock.Stub(x => x.Connected).Return(true);
-            socketMock.Stub(x => x.ReadUntil(new List<string> { "Password:", "[c" }, 1000))
-                      .Return(Encoding.ASCII.GetBytes("invalid login"));
+            socketMock.Stub(x => x.WaitFor(new List<string> { "Password:", "[c" }));
+            socketMock.Stub(x => x.Read()).Return("invalid login");
 
             SymSession session = new SymSession(socketMock, 10);
             bool result = session.Login("bob", "dole", "bobdole");
@@ -184,10 +184,10 @@ namespace Symitar.Tests
         {
             var socketMock = MockRepository.GenerateStub<ISymSocket>();
             socketMock.Stub(x => x.Connected).Return(true);
-            socketMock.Stub(x => x.ReadUntil(new List<string> { "Password:", "[c" }, 1000))
-                      .Return(Encoding.ASCII.GetBytes("Password:"));
-            socketMock.Stub(x => x.ReadUntil(":", 1000))
-                      .Return(Encoding.ASCII.GetBytes("invalid login"));
+            socketMock.Stub(x => x.WaitFor(new List<string> { "Password:", "[c" })).Return(0);
+            socketMock.Stub(x => x.Read()).Return("Password:").Repeat.Once();
+            socketMock.Stub(x => x.WaitFor(":")).Return(0);
+            socketMock.Stub(x => x.Read()).Return("invalid login");
 
             SymSession session = new SymSession(socketMock, 10);
             session.Login("bob", "dole", "bobdole");
@@ -199,10 +199,10 @@ namespace Symitar.Tests
         {
             var socketMock = MockRepository.GenerateStub<ISymSocket>();
             socketMock.Stub(x => x.Connected).Return(true);
-            socketMock.Stub(x => x.ReadUntil(new List<string> { "Password:", "[c" }, 1000))
-                      .Return(Encoding.ASCII.GetBytes("Password:"));
-            socketMock.Stub(x => x.ReadUntil(":", 1000))
-                      .Return(Encoding.ASCII.GetBytes("invalid login"));
+            socketMock.Stub(x => x.WaitFor(new List<string> { "Password:", "[c" })).Return(0);
+            socketMock.Stub(x => x.Read()).Return("Password:").Repeat.Once();
+            socketMock.Stub(x => x.WaitFor(":")).Return(0);
+            socketMock.Stub(x => x.Read()).Return("invalid login");
 
             SymSession session = new SymSession(socketMock, 10);
             bool result = session.Login("bob", "dole", "bobdole");
@@ -214,7 +214,7 @@ namespace Symitar.Tests
         {
             var socketMock = MockRepository.GenerateStub<ISymSocket>();
             socketMock.Stub(x => x.Connected).Return(true);
-            socketMock.Stub(x => x.ReadUntil(new List<string> { "Password:", "[c" }, 1000))
+            socketMock.Stub(x => x.WaitFor(new List<string> { "Password:", "[c" }))
                       .Throw(new InvalidOperationException());
 
             SymSession session = new SymSession(socketMock, 10);
@@ -227,11 +227,11 @@ namespace Symitar.Tests
         {
             var socketMock = MockRepository.GenerateStub<ISymSocket>();
             socketMock.Stub(x => x.Connected).Return(true);
-            socketMock.Stub(x => x.ReadUntil(new List<string> { "Password:", "[c" }, 1000))
-                      .Return(Encoding.ASCII.GetBytes("Password: "));
-            socketMock.Stub(x => x.ReadUntil(":", 1000))
-                      .Return(Encoding.ASCII.GetBytes("$ "));
-            socketMock.Stub(x => x.ReadCommand(2000))
+            socketMock.Stub(x => x.WaitFor(new List<string> { "Password:", "[c" })).Return(0);
+            socketMock.Stub(x => x.Read()).Return("Password:").Repeat.Once();
+            socketMock.Stub(x => x.WaitFor(":")).Return(0);
+            socketMock.Stub(x => x.Read()).Return(":").Repeat.Once();
+            socketMock.Stub(x => x.ReadCommand())
                       .Return(new SymCommand("SymLogonError", new Dictionary<string, string> { { "Text", "Too Many Invalid Password Attempts" } }));
 
             SymSession session = new SymSession(socketMock, 10);
@@ -244,11 +244,11 @@ namespace Symitar.Tests
         {
             var socketMock = MockRepository.GenerateStub<ISymSocket>();
             socketMock.Stub(x => x.Connected).Return(true);
-            socketMock.Stub(x => x.ReadUntil(new List<string> { "Password:", "[c" }, 1000))
-                      .Return(Encoding.ASCII.GetBytes("Password: "));
-            socketMock.Stub(x => x.ReadUntil(":", 1000))
-                      .Return(Encoding.ASCII.GetBytes("$ "));
-            socketMock.Stub(x => x.ReadCommand(2000))
+            socketMock.Stub(x => x.WaitFor(new List<string> { "Password:", "[c" })).Return(0);
+            socketMock.Stub(x => x.Read()).Return("Password:").Repeat.Once();
+            socketMock.Stub(x => x.WaitFor(":")).Return(0);
+            socketMock.Stub(x => x.Read()).Return(":").Repeat.Once();
+            socketMock.Stub(x => x.ReadCommand())
                       .Return(new SymCommand("SymLogonError", new Dictionary<string, string> { { "Text", "Too Many Invalid Password Attempts" } }));
 
             SymSession session = new SymSession(socketMock, 10);
@@ -261,13 +261,13 @@ namespace Symitar.Tests
         {
             var socketMock = MockRepository.GenerateStub<ISymSocket>();
             socketMock.Stub(x => x.Connected).Return(true);
-            socketMock.Stub(x => x.ReadUntil(new List<string> { "Password:", "[c" }, 1000))
-                      .Return(Encoding.ASCII.GetBytes("Password: "));
-            socketMock.Stub(x => x.ReadUntil(":", 1000))
-                      .Return(Encoding.ASCII.GetBytes("$ "));
-            socketMock.Stub(x => x.ReadCommand(2000))
+            socketMock.Stub(x => x.WaitFor(new List<string> { "Password:", "[c" })).Return(0);
+            socketMock.Stub(x => x.Read()).Return("Password:").Repeat.Once();
+            socketMock.Stub(x => x.WaitFor(":")).Return(0);
+            socketMock.Stub(x => x.Read()).Return(":").Repeat.Once();
+            socketMock.Stub(x => x.ReadCommand())
                       .Return(new SymCommand("Input")).Repeat.Once();
-            socketMock.Stub(x => x.ReadCommand(2000))
+            socketMock.Stub(x => x.ReadCommand())
                       .Return(new SymCommand("SymLogonInvalidUser"));
 
             SymSession session = new SymSession(socketMock, 10);
@@ -280,13 +280,13 @@ namespace Symitar.Tests
         {
             var socketMock = MockRepository.GenerateStub<ISymSocket>();
             socketMock.Stub(x => x.Connected).Return(true);
-            socketMock.Stub(x => x.ReadUntil(new List<string> { "Password:", "[c" }, 1000))
-                      .Return(Encoding.ASCII.GetBytes("Password: "));
-            socketMock.Stub(x => x.ReadUntil(":", 1000))
-                      .Return(Encoding.ASCII.GetBytes("$ "));
-            socketMock.Stub(x => x.ReadCommand(2000))
+            socketMock.Stub(x => x.WaitFor(new List<string> { "Password:", "[c" })).Return(0);
+            socketMock.Stub(x => x.Read()).Return("Password:").Repeat.Once();
+            socketMock.Stub(x => x.WaitFor(":")).Return(0);
+            socketMock.Stub(x => x.Read()).Return(":").Repeat.Once();
+            socketMock.Stub(x => x.ReadCommand())
                       .Return(new SymCommand("Input")).Repeat.Once();
-            socketMock.Stub(x => x.ReadCommand(2000))
+            socketMock.Stub(x => x.ReadCommand())
                       .Return(new SymCommand("SymLogonInvalidUser"));
 
             SymSession session = new SymSession(socketMock, 10);
@@ -299,13 +299,13 @@ namespace Symitar.Tests
         {
             var socketMock = MockRepository.GenerateStub<ISymSocket>();
             socketMock.Stub(x => x.Connected).Return(true);
-            socketMock.Stub(x => x.ReadUntil(new List<string> { "Password:", "[c" }, 1000))
-                      .Return(Encoding.ASCII.GetBytes("Password: "));
-            socketMock.Stub(x => x.ReadUntil(":", 1000))
-                      .Return(Encoding.ASCII.GetBytes("$ "));
-            socketMock.Stub(x => x.ReadCommand(2000))
+            socketMock.Stub(x => x.WaitFor(new List<string> { "Password:", "[c" })).Return(0);
+            socketMock.Stub(x => x.Read()).Return("Password:").Repeat.Once();
+            socketMock.Stub(x => x.WaitFor(":")).Return(0);
+            socketMock.Stub(x => x.Read()).Return(":").Repeat.Once();
+            socketMock.Stub(x => x.ReadCommand())
                       .Return(new SymCommand("Input")).Repeat.Once();
-            socketMock.Stub(x => x.ReadCommand(2000))
+            socketMock.Stub(x => x.ReadCommand())
                       .Return(new SymCommand("SymLogonError", new Dictionary<string, string> { { "Text", "Too Many Invalid Password Attempts" } }));
 
             SymSession session = new SymSession(socketMock, 10);
@@ -318,13 +318,13 @@ namespace Symitar.Tests
         {
             var socketMock = MockRepository.GenerateStub<ISymSocket>();
             socketMock.Stub(x => x.Connected).Return(true);
-            socketMock.Stub(x => x.ReadUntil(new List<string> { "Password:", "[c" }, 1000))
-                      .Return(Encoding.ASCII.GetBytes("Password: "));
-            socketMock.Stub(x => x.ReadUntil(":", 1000))
-                      .Return(Encoding.ASCII.GetBytes("$ "));
-            socketMock.Stub(x => x.ReadCommand(2000))
+            socketMock.Stub(x => x.WaitFor(new List<string> { "Password:", "[c" })).Return(0);
+            socketMock.Stub(x => x.Read()).Return("Password:").Repeat.Once();
+            socketMock.Stub(x => x.WaitFor(":")).Return(0);
+            socketMock.Stub(x => x.Read()).Return(":").Repeat.Once();
+            socketMock.Stub(x => x.ReadCommand())
                       .Return(new SymCommand("Input")).Repeat.Once();
-            socketMock.Stub(x => x.ReadCommand(2000))
+            socketMock.Stub(x => x.ReadCommand())
                       .Return(new SymCommand("SymLogonError", new Dictionary<string, string> { { "Text", "Too Many Invalid Password Attempts" } }));
 
             SymSession session = new SymSession(socketMock, 10);
@@ -337,7 +337,7 @@ namespace Symitar.Tests
         {
             var socketMock = MockRepository.GenerateStub<ISymSocket>();
             socketMock.Stub(x => x.Connected).Return(true);
-            socketMock.Stub(x => x.Write(new byte[] { 0xFF, 0xFB, 0x18 }, 1000))
+            socketMock.Stub(x => x.Write(new byte[] { 0xFF, 0xFB, 0x18 }))
                       .Throw(new NetworkInformationException());
 
             SymSession session = new SymSession(socketMock, 10);
@@ -350,7 +350,7 @@ namespace Symitar.Tests
         {
             var socketMock = MockRepository.GenerateStub<ISymSocket>();
             socketMock.Stub(x => x.Connected).Return(true);
-            socketMock.Stub(x => x.Write(new byte[] { 0xFF, 0xFB, 0x18 }, 1000))
+            socketMock.Stub(x => x.Write(new byte[] { 0xFF, 0xFB, 0x18 }))
                       .Throw(new NetworkInformationException());
 
             SymSession session = new SymSession(socketMock, 10);
@@ -376,13 +376,13 @@ namespace Symitar.Tests
         {
             var socketMock = MockRepository.GenerateStub<ISymSocket>();
             socketMock.Stub(x => x.Connected).Return(true);
-            socketMock.Stub(x => x.ReadUntil(new List<string> { "Password:", "[c" }, 1000))
-                      .Return(Encoding.ASCII.GetBytes("Password: "));
-            socketMock.Stub(x => x.ReadUntil(":", 1000))
-                      .Return(Encoding.ASCII.GetBytes("$ "));
-            socketMock.Stub(x => x.ReadCommand(2000))
+            socketMock.Stub(x => x.WaitFor(new List<string> { "Password:", "[c" })).Return(0);
+            socketMock.Stub(x => x.Read()).Return("Password:").Repeat.Once();
+            socketMock.Stub(x => x.WaitFor(":")).Return(0);
+            socketMock.Stub(x => x.Read()).Return(":").Repeat.Once();
+            socketMock.Stub(x => x.ReadCommand())
                       .Return(new SymCommand("Request")).Repeat.Once();
-            socketMock.Stub(x => x.ReadCommand(2000))
+            socketMock.Stub(x => x.ReadCommand())
                       .Return(new SymCommand("Input", new Dictionary<string, string> { { "HelpCode", "10025" } }));
 
             SymSession session = new SymSession(socketMock, 10);

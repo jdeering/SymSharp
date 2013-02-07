@@ -11,17 +11,16 @@ namespace Symitar
 {
     // Wraps TCP Client to connect
     // to Symitar. Used by SymSession.
-    internal class SymSocket : ISymSocket
+    public class SymSocket : ISymSocket
     {
         private const int DefaultTimeout = 5000;
         private const int KeepAliveInterval = 45000;
 
+        private ISocketSemaphore _clientLock;
         private ITcpAdapter _client;
-        private NetworkStream _stream;
         private Thread _keepAliveThread;
         private DateTime _lastActivity;
         private bool _keepAliveActive;
-        private ISocketSemaphore _clientLock;
 
         public string Server { get; set; }
         public int Port { get; set; }
@@ -75,7 +74,6 @@ namespace Symitar
         private void Initialize(ITcpAdapter tcpClient = null)
         {
             _client = tcpClient;
-            _stream = null;
             _keepAliveThread = null;
             _keepAliveActive = false;
 
@@ -88,7 +86,6 @@ namespace Symitar
         private void Initialize(ITcpAdapter tcpClient, ISocketSemaphore semaphore)
         {
             _client = tcpClient;
-            _stream = null;
             _keepAliveThread = null;
             _keepAliveActive = false;
 
@@ -125,14 +122,10 @@ namespace Symitar
 
                 LockSocket(5000);
 
-                if(_client == null) // Use default TcpAdapter implementation
-                    _client = new TcpAdapter();
+                if(_client == null) // Use SocketAdapter implementation as default ITcpAdapter
+                    _client = new SocketAdapter();
                 
-                if(parseResult)
-                    _client.Connect(IPAddress.Parse(server), port);
-                else
-                    _client.Connect(server, port);
-                _stream = _client.GetStream();
+                _client.Connect(server, port);
             }
             catch (Exception ex)
             {
@@ -151,7 +144,6 @@ namespace Symitar
         public void Disconnect()
         {
             KeepAliveStop();
-            try { _stream.Close(); } catch { }
             try { _client.Close(); } catch { }
             Initialize(); // Reset everything
         }
@@ -169,206 +161,51 @@ namespace Symitar
             _clientLock.Release();
         }
 
-        public void Write(byte[] buff, int off, int size, int timeout)
+        public void Write(string data)
         {
-            LockSocket(DefaultTimeout);
-
-            int currTimeout = _stream.WriteTimeout;
-
-            _stream.WriteTimeout = timeout;
-            _stream.Write(buff, off, size);
-
-            _stream.WriteTimeout = currTimeout;
-
-            UnlockSocket();
-            _lastActivity = DateTime.Now;
-        }
-
-        public void Write(byte[] buff, int timeout)
-        {
-            Write(buff, 0, buff.Length, timeout);
-        }
-
-        public void Write(string str, int timeout)
-        {
-            Write(Utilities.EncodeString(str), timeout);
-        }
-
-        public void Write(ISymCommand cmd, int timeout)
-        {
-            Write(cmd.ToString(), timeout);
-        }
-
-        public void Write(byte[] buff)
-        {
-            Write(buff, DefaultTimeout);
-        }
-
-        public void Write(string str)
-        {
-            Write(Utilities.EncodeString(str), DefaultTimeout);
+            _client.Write(data);
         }
 
         public void Write(ISymCommand cmd)
         {
-            Write(cmd.ToString(), DefaultTimeout);
+            Write(cmd.ToString());
+        }
+
+        public void Write(byte[] buff)
+        {
+            _client.Write(buff);
         }
 
         public void WakeUp()
         {
             try
             {
-                Write(new SymCommand("WakeUp"), 1000);
+                Write(new SymCommand("WakeUp"));
             }
             catch (Exception) { }
         }
 
-        public byte[] Read(int size, int timeout)
+        public string Read()
         {
-            LockSocket(5000);
-            int oto = _stream.ReadTimeout;
-            _stream.ReadTimeout = timeout;
-            DateTime begin = DateTime.Now;
-
-            int read = 0;
-            byte[] buff = new byte[size];
-
-            while (read < size)
-            {
-                if ((DateTime.Now - begin).TotalMilliseconds > timeout)
-                {
-                    UnlockSocket();
-                    Disconnect();
-                    throw new Exception("Socket Read Timeout");
-                }
-                read += _stream.Read(buff, read, size - read);
-            }
-
-            _stream.ReadTimeout = oto;
-            UnlockSocket();
-            _lastActivity = DateTime.Now;
-
-            return buff;
+            return _client.Read();
         }
 
-        public byte[] Read(int size)
-        {
-            return Read(size, DefaultTimeout);
-        }
-
-        public byte[] ReadUntil(byte[] match, int timeout)
-        {
-            LockSocket(5000);
-            int oto = _stream.ReadTimeout;
-            _stream.ReadTimeout = timeout;
-            DateTime begin = DateTime.Now;
-
-            bool hit = false;
-            byte[] test = new byte[match.Length];
-            List<byte> buff = new List<byte>();
-
-            while (!hit)
-            {
-                if ((DateTime.Now - begin).TotalMilliseconds > timeout)
-                {
-                    UnlockSocket();
-                    Disconnect();
-                    throw new Exception("Socket Read Timeout");
-                }
-                for (int i = 0; i < (test.Length - 1); i++) test[i] = test[i + 1];
-                _stream.Read(test, test.Length - 1, 1);
-                buff.Add(test[test.Length - 1]);
-                hit = true;
-                for (int c = 0; c < test.Length; c++)
-                {
-                    if (test[c] != match[c])
-                    {
-                        hit = false;
-                        break;
-                    }
-                }
-            }
-
-            _stream.ReadTimeout = oto;
-            UnlockSocket();
-            _lastActivity = DateTime.Now;
-            return buff.ToArray();
-        }
-        //------------------------------------------------------------------------
-        public byte[] ReadUntil(string match, int timeout) { return ReadUntil(Utilities.EncodeString(match), timeout); }
-        public string ReadUntilString(byte[] match, int timeout) { return Utilities.DecodeString(ReadUntil(match, timeout)); }
-        public string ReadUntilString(string match, int timeout) { return Utilities.DecodeString(ReadUntil(match, timeout)); }
-        public byte[] ReadUntil(byte[] match) { return ReadUntil(match, DefaultTimeout); }
-        public byte[] ReadUntil(string match) { return ReadUntil(match, DefaultTimeout); }
-        public string ReadUntilString(byte[] match) { return ReadUntilString(match, DefaultTimeout); }
-        public string ReadUntilString(string match) { return ReadUntilString(match, DefaultTimeout); }
-        
         public ISymCommand ReadCommand()
         {
-            return ReadCommand(DefaultTimeout);
+            throw new NotImplementedException();
         }
 
-        public ISymCommand ReadCommand(int timeout)
+        public int WaitFor(string matcher)
         {
-            ReadUntil(new byte[] { 0x1B, 0xFE }, timeout);
-            string data = ReadUntilString(new byte[] { 0xFC }, timeout);
-
-            ISymCommand cmd = SymCommand.Parse(data.Substring(0, data.Length - 1));
-            if ((cmd.Command == "MsgDlg") && (cmd.HasParameter("Text")))
-                if (cmd.Get("Text").IndexOf("From PID") != -1)
-                    cmd = ReadCommand(timeout);
-            return cmd;
+            throw new NotImplementedException();
         }
 
-        public byte[] ReadUntil(List<byte[]> matchers, int timeout)
+        public int WaitFor(List<string> matchers)
         {
-            List<string> stringMatchers = matchers.Select(matcher => Utilities.DecodeString(matcher)).ToList();
+            if(matchers.Count == 0)
+                throw new ArgumentException("matchers");
 
-            return ReadUntil(stringMatchers, timeout);
-        }
-
-        public byte[] ReadUntil(List<string> matchers, int timeout)
-        {
-            if(timeout <= 0)
-                throw new ArgumentOutOfRangeException("timeout");
-
-            if (matchers.Count == 0)
-                throw new ArgumentException("matchers", "One or more matchers must be provided.");
-            
-            byte[] buffer = new byte[1024]; // 1 MB buffer for read
-            int bytesRead = 0;
-            string data = "";
-
-            LockSocket(5000);
-            int currTimeout = _stream.ReadTimeout;
-            _stream.ReadTimeout = timeout;
-
-            bool matchFound = false;
-            DateTime startTime = DateTime.Now;
-            while (!matchFound)
-            {
-                var timeSpan = (DateTime.Now - startTime).TotalMilliseconds;
-                if (timeSpan > timeout)
-                {
-                    UnlockSocket();
-                    Disconnect();
-                    throw new TimeoutException();
-                }
-
-                bytesRead = _stream.Read(buffer, bytesRead, 1);
-                data += Utilities.DecodeString(buffer);
-
-                if (matchers.Any(matcher => data.Contains(matcher)))
-                {
-                    matchFound = true;
-                }
-            }
-
-            _stream.ReadTimeout = currTimeout;
-            UnlockSocket();
-            _lastActivity = DateTime.Now;
-
-            return Utilities.EncodeString(data);
+            return -1;
         }
 
         public void KeepAliveStart()
@@ -408,7 +245,6 @@ namespace Symitar
 
         private void KeepAlive()
         {
-            int oto = _stream.WriteTimeout;
             byte[] wakeCmd = Utilities.EncodeString((new SymCommand("WakeUp")).ToString());
 
             try
@@ -419,13 +255,9 @@ namespace Symitar
                     {
                         try
                         {
-                            LockSocket(5000);
                             try
                             {
-                                _stream.WriteTimeout = 1000;
-                                _stream.Write(wakeCmd, 0, wakeCmd.Length);
-                                _stream.WriteTimeout = oto;
-                                UnlockSocket();
+                                _client.Write(wakeCmd.ToString());
                                 _lastActivity = DateTime.Now;
                             }
                             catch (Exception)

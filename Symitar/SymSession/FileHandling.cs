@@ -31,7 +31,7 @@ namespace Symitar
 
             while (true)
             {
-                cmd = _socket.ReadCommand(2000);
+                cmd = _socket.ReadCommand();
                 if (cmd.HasParameter("Status"))
                     break;
                 if (cmd.HasParameter("Name"))
@@ -68,7 +68,7 @@ namespace Symitar
             cmd.Set("NewName", newName);
             _socket.Write(cmd);
 
-            cmd = _socket.ReadCommand(2000);
+            cmd = _socket.ReadCommand();
             if (cmd.HasParameter("Status"))
             {
                 if (cmd.Get("Status").IndexOf("No such file or directory") != -1)
@@ -96,7 +96,7 @@ namespace Symitar
             cmd.Set("Name", name);
             _socket.Write(cmd);
 
-            cmd = _socket.ReadCommand(2000);
+            cmd = _socket.ReadCommand();
             if (cmd.HasParameter("Status"))
             {
                 if (cmd.Get("Status").IndexOf("No such file or directory") != -1)
@@ -210,7 +210,7 @@ namespace Symitar
                 {
                     _socket.Write("PROT" + blockStr + "DATA" + chunkStr);
                     _socket.Write(chunk);
-                    response = _socket.Read(16);
+                    response = Convert.FromBase64String(_socket.Read());
                 }
 
                 block++;
@@ -219,7 +219,7 @@ namespace Symitar
 
             blockStr = block.ToString("D3");
             _socket.Write("PROT" + blockStr + "EOF\u0020\u0020\u0020\u0020\u0020\u0020");
-            _socket.Read(16);
+            _socket.Read();
 
             _socket.ReadCommand();
             _socket.WakeUp();

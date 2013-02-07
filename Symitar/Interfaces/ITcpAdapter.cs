@@ -12,9 +12,11 @@ namespace Symitar.Interfaces
         bool Connected { get; }
 
         void Connect(string server, int port);
-        void Connect(IPAddress server, int port);
-        NetworkStream GetStream();
 
         void Close();
+
+        void Write(string data);
+        void Write(byte[] data);
+        string Read();
     }
 }

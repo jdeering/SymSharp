@@ -30,19 +30,24 @@ namespace Symitar
             _client.Connect(server, port);
         }
 
-        public void Connect(IPAddress server, int port)
-        {
-            _client.Connect(server, port);
-        }
-
-        public NetworkStream GetStream()
-        {
-            return _client.GetStream();
-        }
-
         public void Close()
         {
             _client.Close();
+        }
+
+        public void Write(string data)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Write(byte[] data)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string Read()
+        {
+            throw new NotImplementedException();
         }
     }
 }
