@@ -16,39 +16,46 @@ namespace Symitar.Console
         public Form1()
         {
             InitializeComponent();
-
-            Thread dataThread = new Thread(UpdateTextBox);
-            dataThread.Start();
         }
 
         private void UpdateTextBox()
         {
             while (true)
             {
-                if (_socket != null && _socket.Connected)
+                if (_session != null && _session.Socket != null && _session.Socket.Connected)
                 {
-                    var data = _socket.Read();
+                    var data = _session.Socket.Read();
                     if(!string.IsNullOrEmpty(data))
                         responseBox.Invoke(() => responseBox.Text += data);
                 }
             }
         }
 
-        private SymSocket _socket;
+        private SymSession _session;
 
         private void startButton_Click(object sender, EventArgs e)
         {
-            var adapter = new SocketAdapter();
-            _socket = new SymSocket(adapter, "symitar", 23);
-            _socket.Connect();
+            if (_session != null)
+            {
+                _session.Disconnect();
+                _session = null;
+            }
 
-            _socket.Write(new byte[] { 0xFF, 0xFB, 0x18 });
-            _socket.Write(new byte[] { 0xFF, 0xFA, 0x18, 0x00, 0x61, 0x69, 0x78, 0x74, 0x65, 0x72, 0x6D, 0xFF, 0xF0 });
-            _socket.Write(new byte[] { 0xFF, 0xFD, 0x01 });
-            _socket.Write(new byte[] { 0xFF, 0xFD, 0x03, 0xFF, 0xFC, 0x1F, 0xFF, 0xFC, 0x01 });
-            
-            var data = _socket.Read();
-            responseBox.Text += data + "\n";
+            _session = new SymSession(670);
+            _session.Connect("symitar", 23);
+            _session.Login("jdeering", "h3dd0#mon", "083ch#ckb00k");
+
+            if (!_session.LoggedIn)
+            {
+                responseBox.Text += "LOGIN FAILED\n\n";
+            }
+            else
+            {
+                responseBox.Text += "LOGIN PASSED\n\n";
+            }
+
+            //Thread dataThread = new Thread(UpdateTextBox);
+            //dataThread.Start();
         }
 
         private void sendButton_Click(object sender, EventArgs e)
@@ -56,9 +63,19 @@ namespace Symitar.Console
             var message = messageBox.Text;
             messageBox.Text = "";
 
-            _socket.Write(message + '\r');
-            var data = _socket.Read();
-            responseBox.Text += data + "\n";
+            var files = _session.FileList(message, FileType.RepGen);
+
+            foreach (var f in files)
+            {
+                responseBox.Text += f.Name + "\n";
+            }
+        }
+
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            _session.Disconnect();
+            _session = null;
+            base.OnClosing(e);
         }
     }
 

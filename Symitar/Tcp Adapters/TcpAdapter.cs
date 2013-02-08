@@ -59,5 +59,10 @@ namespace Symitar
         {
             throw new NotImplementedException();
         }
+
+        public bool Find(string data)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

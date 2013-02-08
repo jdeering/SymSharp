@@ -192,8 +192,8 @@ namespace Symitar
 
         public ISymCommand ReadCommand()
         {
-            _client.ReadTo(new byte[] { 0x1B, 0xFE });
-            string data = _client.ReadTo(new byte[] { 0xFC });
+            _client.ReadTo(Encoding.ASCII.GetString(new byte[] { 0x1b, 0xfe }));
+            string data = _client.ReadTo(Encoding.ASCII.GetString(new byte[] { 0xfc }));
 
             if(data.Length == 0) return SymCommand.Parse("");
 
@@ -204,26 +204,11 @@ namespace Symitar
             return cmd;
         }
 
-        public int WaitFor(string matcher)
+        public int WaitFor(params string[] matchers)
         {
-            var startTime = DateTime.Now;
+            if(matchers.Length == 0)
+                throw new ArgumentException("matchers");
 
-            var data = _client.ReadTo(matcher);
-            while (string.IsNullOrEmpty(data))
-            {
-                if ((DateTime.Now - startTime).TotalMilliseconds > DefaultTimeout)
-                {
-                    throw new TimeoutException("Timed out waiting for "+matcher);
-                }
-
-                data = _client.ReadTo(matcher);
-            }
-
-            return 0;
-        }
-
-        public int WaitFor(List<string> matchers)
-        {
             var startTime = DateTime.Now;
 
             while (true)
@@ -233,13 +218,11 @@ namespace Symitar
                     throw new TimeoutException("Timed out waiting for " + matchers);
                 }
 
-                for (var i = 0; i < matchers.Count; i++)
+                for (var i = 0; i < matchers.Length; i++)
                 {
-                    var data = _client.ReadTo(matchers[i]);
-                    if (!string.IsNullOrEmpty(data)) 
+                    if (_client.Find(matchers[i]))  
                         return i;
                 }
-
             }
         }
 

@@ -20,5 +20,7 @@ namespace Symitar.Interfaces
         string Read();
         string ReadTo(string data); // Reads data stream before and up to the specified data
         string ReadTo(byte[] data); // Reads data stream before and up to the specified data
+
+        bool Find(string data);
     }
 }

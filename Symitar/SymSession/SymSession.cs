@@ -12,6 +12,10 @@ namespace Symitar
     public partial class SymSession
     {
         private ISymSocket _socket;
+        public ISymSocket Socket
+        {
+            get { return _socket; }
+        }
 
         public int SymDirectory { get; set; }
 
@@ -153,23 +157,16 @@ namespace Symitar
             try
             {
                 string stat;
-                byte[] data;
 
                 _socket.Write(username + '\r');
-
-                _socket.WaitFor(new List<string> { "Password:", "[c" });
+                Thread.Sleep(2);
+                _socket.WaitFor("Password:", "[c");
                 stat = _socket.Read();
 
                 if (stat.IndexOf("[c") == -1)
                 {
-                    if (stat.IndexOf("invalid login") != -1)
-                    {
-                        _error = "Invalid AIX Login";
-                        return false;
-                    }
-
                     _socket.Write(password + '\r');
-                    _socket.WaitFor(":");
+                    _socket.WaitFor("[c", ":");
                     stat = _socket.Read();
 
                     if (stat.IndexOf("invalid login") != -1)
@@ -194,45 +191,36 @@ namespace Symitar
 
         private bool SymLogin(int symDir, string userPassword)
         {
-            _socket.Write("WINDOWSLEVEL=3\n");
-            _socket.WaitFor("$ ");
-            _socket.Write(String.Format("sym {0}\r", symDir));
+            _socket.Write("WINDOWSLEVEL=3\r");
+            var match = _socket.WaitFor("$ ", "SymStart~Global");
+            
+            if(match == 0)
+                _socket.Write(String.Format("sym {0}\r", symDir));
 
-            ISymCommand cmd = _socket.ReadCommand();
+            ISymCommand cmd;
 
-            while (cmd.Command != "Input")
+            while ((cmd = _socket.ReadCommand()).Command != "Input" || cmd.Get("HelpCode") == "10025")
             {
-                if (cmd.Command == "SymLogonError" && cmd.Get("Text").IndexOf("Too Many Invalid Password Attempts") > -1)
+                Console.WriteLine(cmd);
+
+                if (cmd.Command == "Input" && cmd.Get("HelpCode") == "10025")
+                {
+                    _socket.Write("$WinHostSync$\r");
+                }
+
+                if (cmd.Command == "SymLogonError" && cmd.Get("Text").Contains("Too Many Invalid"))
                 {
                     _error = "Too Many Invalid Password Attempts";
                     return false;
                 }
-
-                cmd = _socket.ReadCommand();
-                if ((cmd.Command == "Input") && (cmd.Get("HelpCode") == "10025"))
-                {
-                    _socket.Write("$WinHostSync$\r");
-                    cmd = _socket.ReadCommand();
-                }
             }
 
-            _socket.Write(String.Format("{0}\r", symDir));
-            cmd = _socket.ReadCommand();
-            if (cmd.Command == "SymLogonInvalidUser")
-            {
-                _error = "Invalid Sym User";
-                _socket.Write("\r");
-                _socket.ReadCommand();
-                return false;
-            }
-            if (cmd.Command == "SymLogonError" && cmd.Get("Text").IndexOf("Too Many Invalid Password Attempts") > -1)
-            {
-                _error = "Too Many Invalid Password Attempts";
-                return false;
-            }
-
-            _socket.Write("\r"); _socket.ReadCommand();
-            _socket.Write("\r"); _socket.ReadCommand();
+            _socket.Write(String.Format("{0}\r", userPassword));
+            
+            _socket.Write("\r");
+            _socket.Write("\r");
+            
+            _socket.Read();
 
             return true;
         }

@@ -16,6 +16,7 @@ namespace Symitar
         private string _address;
         private int _port;
 
+        private List<byte> _log; 
         private string _workingData;
         private byte[] _buffer;
 
@@ -28,7 +29,7 @@ namespace Symitar
         {
             _address = server;
             _port = port;
-
+            _log = new List<byte>(256);
             _buffer = new byte[256];
 
             var ipHost = Dns.GetHostEntry(_address);
@@ -49,8 +50,17 @@ namespace Symitar
             // Get The connection socket from the callback
             var sock = (Socket)ar.AsyncState;
 
+            int bytesReceived;
+
             // Get The data , if any
-            var bytesReceived = sock.EndReceive(ar);
+            try
+            {
+                bytesReceived = sock.EndReceive(ar);
+            }
+            catch(ObjectDisposedException ode)
+            {
+                return; // Gracefully handle disposed socket
+            }
 
             if (bytesReceived > 0)
             {
@@ -58,9 +68,9 @@ namespace Symitar
                 var workingData = CleanDisplay(Encoding.ASCII.GetString(_buffer, 0, bytesReceived));
 
                 // Write out the data
-                if (workingData.IndexOf("[c") != -1) Negotiate(1);
-                if (workingData.IndexOf("[6n") != -1) Negotiate(2);
-
+                //if (workingData.IndexOf("[c") != -1) Negotiate(1);
+                //if (workingData.IndexOf("[6n") != -1) Negotiate(2);
+                _log.AddRange(_buffer);
                 _workingData += workingData;
 
                 // Launch another callback to listen for data
@@ -140,7 +150,7 @@ namespace Symitar
         public string Read()
         {
             string data = _workingData;
-            _workingData = "";
+            ClearWorkingData();
             return data;
         }
 
@@ -150,19 +160,56 @@ namespace Symitar
                 return string.Empty;
 
             var end = _workingData.IndexOf(data) + data.Length;
-
-
+            
             string result = _workingData.Substring(0, end);
             if (_workingData.Length > end)
-                _workingData = _workingData.Substring(end + 1);
+            {
+                _log = _log.Skip(end).ToList();
+                _workingData = _workingData.Substring(end);
+            }
             else
-                _workingData = "";
+            {
+                ClearWorkingData();
+            }
             return result;
         }
 
         public string ReadTo(byte[] data)
         {
-            return ReadTo(Encoding.ASCII.GetString(data));
+            int end = -1;
+            for (var i = 0; i < _log.Count - data.Length; i++)
+            {
+                if (_log.GetRange(i, data.Length).ToArray() == data)
+                {
+                    end = i + data.Length - 1;
+                    break;
+                }
+            }
+
+            if (end < 0) return string.Empty;
+
+            string result = _workingData.Substring(0, end);
+            if (_workingData.Length > end)
+            {
+                _log = _log.Skip(end).ToList();
+                _workingData = _workingData.Substring(end);
+            }
+            else
+            {
+                ClearWorkingData();
+            }
+            return result;
+        }
+
+        public bool Find(string data)
+        {
+            return _workingData.Contains(data);
+        }
+
+        private void ClearWorkingData()
+        {
+            _log.Clear();
+            _workingData = "";
         }
     }
 }

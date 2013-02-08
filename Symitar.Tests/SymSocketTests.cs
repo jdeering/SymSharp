@@ -156,7 +156,7 @@ namespace Symitar.Tests
                     {
                         var socket = new SymSocket();
 
-                        socket.WaitFor(new List<string>());
+                        socket.WaitFor();
                     }
                 );
         }

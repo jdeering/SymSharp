@@ -28,7 +28,6 @@ namespace Symitar.Interfaces
         string Read();
         ISymCommand ReadCommand();
 
-        int WaitFor(string matcher);
-        int WaitFor(List<string> matchers);
+        int WaitFor(params string[] matchers);
     }
 }
