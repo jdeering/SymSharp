@@ -159,7 +159,6 @@ namespace Symitar
                 string stat;
 
                 _socket.Write(username + '\r');
-                Thread.Sleep(2);
                 _socket.WaitFor("Password:", "[c");
                 stat = _socket.Read();
 

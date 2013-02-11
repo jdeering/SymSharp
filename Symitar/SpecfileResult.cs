@@ -51,7 +51,7 @@ namespace Symitar
             _errorMessage = message;
             _errorLine = line;
             _errorColumn = col;
-            InvalidInstall = false;
+            InvalidInstall = string.IsNullOrEmpty(fileError);
         }
 
         public static SpecfileResult Success()

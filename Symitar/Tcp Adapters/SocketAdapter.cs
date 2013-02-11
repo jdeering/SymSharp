@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using Symitar.Interfaces;
 
 namespace Symitar
@@ -145,6 +146,8 @@ namespace Symitar
         public void Write(byte[] data)
         {
             _socket.Send(data, 0, data.Length, SocketFlags.None);
+
+            Thread.Sleep(5); // Adding a 5 ms sleep to allow server to respond
         }
 
         public string Read()

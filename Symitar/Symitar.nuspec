@@ -9,7 +9,7 @@
     <projectUrl>https://github.com/jdeering/SymSharp</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
-    <releaseNotes>Strongly signed</releaseNotes>
+    <releaseNotes>Release 1.1</releaseNotes>
     <copyright>Copyright 2013</copyright>
     <tags>symitar poweron repgen ras symsharp</tags>
   </metadata>
