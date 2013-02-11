@@ -11,10 +11,10 @@ namespace Symitar
             get { return _sourceFile; }
         }
 
-        private string _fileError;
-        public string FileError
+        private string _fileWithError;
+        public string FileWithError
         {
-            get { return _fileError; }
+            get { return _fileWithError; }
         }
 
         private string _errorMessage;
@@ -44,14 +44,14 @@ namespace Symitar
             get { return InvalidInstall || _errorLine > 0; }
         }
 
-        public SpecfileResult(Symitar.File specfile, string fileError, string message, int line, int col)
+        public SpecfileResult(Symitar.File specfile, string fileWithError, string message, int line, int col)
         {
             _sourceFile = specfile;
-            _fileError = fileError;
+            _fileWithError = fileWithError;
             _errorMessage = message;
             _errorLine = line;
             _errorColumn = col;
-            InvalidInstall = string.IsNullOrEmpty(fileError);
+            InvalidInstall = !string.IsNullOrEmpty(fileWithError) || !string.IsNullOrEmpty(message) || (line > 0 && col > 0);
         }
 
         public static SpecfileResult Success()

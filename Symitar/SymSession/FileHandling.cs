@@ -282,27 +282,28 @@ namespace Symitar
             throw new Exception("An unknown error occurred.");
         }
 
-        public SpecfileResult FileInstall(Symitar.File file)
+        public SpecfileResult FileInstall(File file)
         {
-            if (file.Type != Symitar.FileType.RepGen)
+            if (file.Type != FileType.RepGen)
                 throw new Exception("Cannot Install a " + file.FileTypeString() + " File");
 
-            _socket.Write("mm3\u001B"); _socket.ReadCommand();
-            _socket.Write("8\r"); _socket.ReadCommand(); _socket.ReadCommand();
+            _socket.Write("mm3\u001B");
+            _socket.Write("8\r");
             _socket.Write(file.Name + '\r');
 
             ISymCommand cmd = _socket.ReadCommand();
             if (cmd.HasParameter("Warning") || cmd.HasParameter("Error"))
             {
-                _socket.ReadCommand();
                 throw new FileNotFoundException();
             }
 
             if (cmd.Command == "SpecfileData")
             {
-                _socket.ReadCommand();
                 _socket.Write("1\r");
-                _socket.ReadCommand(); _socket.ReadCommand();
+                while (!cmd.HasParameter("Size"))
+                {
+                    cmd = _socket.ReadCommand();
+                }
                 return SpecfileResult.Success(int.Parse(cmd.Get("Size").Replace(",", "")));
             }
 
@@ -323,12 +324,29 @@ namespace Symitar
                         errText += cmd.Get("Line") + " ";
                     cmd = _socket.ReadCommand();
                 }
-                _socket.ReadCommand();
-
                 return new SpecfileResult(file, errFile, errText, errRow, errCol);
             }
 
-            throw new Exception("Unknown Install Error");
+            // Handle possibility of Action=Init being
+            // passed over too early
+            var startTime = DateTime.Now;
+            while (cmd.Get("Action") != "DisplayEdit")
+            {
+                if ((DateTime.Now - startTime).TotalSeconds > 5)
+                {
+                    throw new Exception("Unknown Install Error");
+                }
+
+                if (cmd.Get("Action") == "FileInfo")
+                {
+                    errRow = int.Parse(cmd.Get("Line").Replace(",", ""));
+                    errCol = int.Parse(cmd.Get("Col").Replace(",", ""));
+                }
+                else if (cmd.Get("Action") == "ErrText")
+                    errText += cmd.Get("Line") + " ";
+                cmd = _socket.ReadCommand();
+            }
+            return new SpecfileResult(file, errFile, errText, errRow, errCol);
         }
     }
 }
