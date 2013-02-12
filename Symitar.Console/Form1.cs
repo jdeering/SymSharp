@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Symitar.Console
@@ -22,39 +17,45 @@ namespace Symitar.Console
         {
             while (true)
             {
-                if (_session != null && _session.Socket != null && _session.Socket.Connected)
+                if (_socket != null && _socket.Connected)
                 {
-                    var data = _session.Socket.Read();
-                    if(!string.IsNullOrEmpty(data))
-                        responseBox.Invoke(() => responseBox.Text += data);
-                }
+                    string msg;
+                    var cmd = _socket.ReadCommand();
+
+                    msg = cmd.Command == "" ? _socket.Read() : cmd.ToString();
+
+                    if(!string.IsNullOrEmpty(msg))
+                        this.Invoke(() =>
+                            {
+                                responseBox.Text += msg + "\n";
+                                responseBox.SelectionStart = responseBox.Text.Length;
+                                responseBox.ScrollToCaret();
+                            });
+                } 
             }
         }
 
         private SymSession _session;
+        private SymSocket _socket;
 
         private void startButton_Click(object sender, EventArgs e)
         {
             if (_session != null)
             {
+                _socket.Disconnect();
+                _socket = null;
+            }
+
+            _socket = new SymSocket("symitar", 23);
+            _session = new SymSession(_socket, 670);
+            while (!_session.LoggedIn)
+            {
                 _session.Disconnect();
-                _session = null;
+                _session.Connect("symitar", 23);
+                _session.Login("jdeering", "h3dd0#mon", "083ch#ckb00k");
             }
 
-            _session = new SymSession(670);
-            _session.Connect("symitar", 23);
-            _session.Login("jdeering", "h3dd0#mon", "083ch#ckb00k");
-
-            if (!_session.LoggedIn)
-            {
-                responseBox.Text += "LOGIN FAILED\n\n";
-            }
-            else
-            {
-                responseBox.Text += "LOGIN PASSED\n\n";
-            }
-
-            //Thread dataThread = new Thread(UpdateTextBox);
+            Thread dataThread = new Thread(UpdateTextBox);
             //dataThread.Start();
         }
 
@@ -63,12 +64,32 @@ namespace Symitar.Console
             var message = messageBox.Text;
             messageBox.Text = "";
 
-            var files = _session.FileList(message, FileType.RepGen);
-
-            foreach (var f in files)
+            try
             {
-                responseBox.Text += f.Name + "\n";
+                var file = new File() {Name = message, Type = FileType.RepGen};
+                var result = _session.FileInstall(file);
+                LogResponse(_session.Log.Aggregate((a, b) => a + "\n" + b));
+
+                LogResponse(result.PassedCheck);
+                LogResponse(result.FileWithError);
+                LogResponse(result.ErrorMessage);
             }
+            catch (Exception ex)
+            {
+                LogResponse(_session.Log.Aggregate((a, b) => a + "\n" + b));
+                LogResponse(ex.Message);
+            }
+            finally
+            {
+                _session.Log.Clear();
+            }
+        }
+
+        private void LogResponse(object message)
+        {
+            responseBox.Text += message + "\n";
+            responseBox.SelectionStart = responseBox.Text.Length;
+            responseBox.ScrollToCaret();
         }
 
         protected override void OnClosing(CancelEventArgs e)

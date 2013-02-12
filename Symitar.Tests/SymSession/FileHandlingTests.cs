@@ -394,7 +394,7 @@ namespace Symitar.Tests
             SymSession session = new SymSession(mockSocket, 10);
             var result = session.FileCheck(file);
 
-            result.FailedCheck.Should().BeFalse();
+            result.PassedCheck.Should().BeTrue();
         }
 
         [Test]
@@ -418,7 +418,7 @@ namespace Symitar.Tests
             SymSession session = new SymSession(mockSocket, 10);
             var result = session.FileCheck(file);
 
-            result.FailedCheck.Should().BeTrue();
+            result.PassedCheck.Should().BeFalse();
         }
 
         [Test]
@@ -481,7 +481,7 @@ namespace Symitar.Tests
             SymSession session = new SymSession(mockSocket, 10);
             var result = session.FileInstall(file);
 
-            result.FailedCheck.Should().BeFalse();
+            result.PassedCheck.Should().BeTrue();
         }
 
         [Test]
@@ -497,7 +497,7 @@ namespace Symitar.Tests
             SymSession session = new SymSession(mockSocket, 10);
             var result = session.FileInstall(file);
 
-            result.FailedCheck.Should().BeFalse();
+            result.PassedCheck.Should().BeTrue();
         }
 
         [Test]
@@ -521,20 +521,7 @@ namespace Symitar.Tests
             SymSession session = new SymSession(mockSocket, 10);
             var result = session.FileInstall(file);
 
-            result.FailedCheck.Should().BeTrue();
-        }
-
-        [Test]
-        public void FileInstall_UnknownCommands_ThrowsException()
-        {
-            var mockSocket = MockRepository.GenerateMock<ISymSocket>();
-            mockSocket.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("Check", new Dictionary<string, string> { { "Action", "Random" } }));
-
-            File file = new File("symitar", "10", "FILE.TO.CHECK", FileType.RepGen, DateTime.Now, 110);
-            SymSession session = new SymSession(mockSocket, 10);
-
-            Assert.Throws<Exception>(() => session.FileInstall(file), "Unknown Install Error");
+            result.PassedCheck.Should().BeFalse();
         }
     }
 }

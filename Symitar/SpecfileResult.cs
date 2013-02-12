@@ -39,9 +39,9 @@ namespace Symitar
         public int InstallSize { get; set; }
         public bool InvalidInstall { get; set; }
 
-        public bool FailedCheck
+        public bool PassedCheck
         {
-            get { return InvalidInstall || _errorLine > 0; }
+            get { return !InvalidInstall && _errorLine <= 0; }
         }
 
         public SpecfileResult(Symitar.File specfile, string fileWithError, string message, int line, int col)

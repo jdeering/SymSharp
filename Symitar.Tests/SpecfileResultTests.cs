@@ -12,17 +12,17 @@ namespace Symitar.Tests
     public class SpecfileResultTests
     {
         [Test]
-        public void SpecfileError_Success_DoesntFailCheck()
+        public void SpecfileError_Success_PassesCheck()
         {
             SpecfileResult result = SpecfileResult.Success();
-            result.FailedCheck.Should().BeFalse();
+            result.PassedCheck.Should().BeTrue();
         }
 
         [Test]
-        public void SpecfileError_SuccessWithInstallSizeOver0_DoesntFailCheck()
+        public void SpecfileError_SuccessWithInstallSizeOver0_PassesCheck()
         {
             SpecfileResult result = SpecfileResult.Success(100);
-            result.FailedCheck.Should().BeFalse();
+            result.PassedCheck.Should().BeTrue();
         }
 
         [Test]
@@ -36,7 +36,7 @@ namespace Symitar.Tests
         public void SpecfileError_SuccessWithInstallSizeEqual0_FailsCheck()
         {
             SpecfileResult result = SpecfileResult.Success(0);
-            result.FailedCheck.Should().BeTrue();
+            result.PassedCheck.Should().BeFalse();
         }
 
         [Test]

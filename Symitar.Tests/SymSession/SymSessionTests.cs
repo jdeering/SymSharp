@@ -266,8 +266,6 @@ namespace Symitar.Tests
             socketMock.Stub(x => x.WaitFor(":")).Return(0);
             socketMock.Stub(x => x.Read()).Return(":").Repeat.Once();
             socketMock.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("Input")).Repeat.Once();
-            socketMock.Stub(x => x.ReadCommand())
                       .Return(new SymCommand("SymLogonInvalidUser"));
 
             SymSession session = new SymSession(socketMock, 10);
@@ -284,8 +282,6 @@ namespace Symitar.Tests
             socketMock.Stub(x => x.Read()).Return("Password:").Repeat.Once();
             socketMock.Stub(x => x.WaitFor(":")).Return(0);
             socketMock.Stub(x => x.Read()).Return(":").Repeat.Once();
-            socketMock.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("Input")).Repeat.Once();
             socketMock.Stub(x => x.ReadCommand())
                       .Return(new SymCommand("SymLogonInvalidUser"));
 
@@ -304,8 +300,6 @@ namespace Symitar.Tests
             socketMock.Stub(x => x.WaitFor(":")).Return(0);
             socketMock.Stub(x => x.Read()).Return(":").Repeat.Once();
             socketMock.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("Input")).Repeat.Once();
-            socketMock.Stub(x => x.ReadCommand())
                       .Return(new SymCommand("SymLogonError", new Dictionary<string, string> { { "Text", "Too Many Invalid Password Attempts" } }));
 
             SymSession session = new SymSession(socketMock, 10);
@@ -322,8 +316,6 @@ namespace Symitar.Tests
             socketMock.Stub(x => x.Read()).Return("Password:").Repeat.Once();
             socketMock.Stub(x => x.WaitFor(":")).Return(0);
             socketMock.Stub(x => x.Read()).Return(":").Repeat.Once();
-            socketMock.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("Input")).Repeat.Once();
             socketMock.Stub(x => x.ReadCommand())
                       .Return(new SymCommand("SymLogonError", new Dictionary<string, string> { { "Text", "Too Many Invalid Password Attempts" } }));
 

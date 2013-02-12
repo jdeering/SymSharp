@@ -36,6 +36,16 @@ namespace Symitar
             get { return _socket.Connected; }
         }
 
+        public List<string> Log { get; private set; }
+
+        private void LogCommand(ISymCommand cmd)
+        {
+            if (!string.IsNullOrEmpty(cmd.Command))
+            {
+                Log.Add(cmd.ToString());
+            }
+        }
+
         public SymSession()
         {
             Initialize();
@@ -64,6 +74,8 @@ namespace Symitar
         {
             _error = "";
             _loggedIn = false;
+
+            Log = new List<string>();
         }
         
         public bool Connect(string server, int port)
@@ -196,15 +208,15 @@ namespace Symitar
             if(match == 0)
                 _socket.Write(String.Format("sym {0}\r", symDir));
 
-            ISymCommand cmd;
-
-            while ((cmd = _socket.ReadCommand()).Command != "Input" || cmd.Get("HelpCode") == "10025")
+            ISymCommand cmd = _socket.ReadCommand();
+            while (cmd.Command != "Input" || cmd.Get("HelpCode") == "10025")
             {
                 Console.WriteLine(cmd);
 
                 if (cmd.Command == "Input" && cmd.Get("HelpCode") == "10025")
                 {
                     _socket.Write("$WinHostSync$\r");
+                    break;
                 }
 
                 if (cmd.Command == "SymLogonError" && cmd.Get("Text").Contains("Too Many Invalid"))
@@ -212,6 +224,13 @@ namespace Symitar
                     _error = "Too Many Invalid Password Attempts";
                     return false;
                 }
+                
+                if (cmd.Command == "SymLogonInvalidUser")
+                {
+                    _error = "Invalid Sym User";
+                    return false;
+                }
+                cmd = _socket.ReadCommand();
             }
 
             _socket.Write(String.Format("{0}\r", userPassword));

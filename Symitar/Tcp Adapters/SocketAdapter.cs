@@ -147,7 +147,7 @@ namespace Symitar
         {
             _socket.Send(data, 0, data.Length, SocketFlags.None);
 
-            Thread.Sleep(5); // Adding a 5 ms sleep to allow server to respond
+            Thread.Sleep(25); // Adding a 25 ms sleep to allow server to respond
         }
 
         public string Read()
@@ -159,7 +159,7 @@ namespace Symitar
 
         public string ReadTo(string data)
         {
-            if (_workingData.IndexOf(data) < 0) 
+            if (string.IsNullOrEmpty(_workingData) || _workingData.IndexOf(data) < 0) 
                 return string.Empty;
 
             var end = _workingData.IndexOf(data) + data.Length;

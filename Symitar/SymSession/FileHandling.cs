@@ -284,59 +284,66 @@ namespace Symitar
 
         public SpecfileResult FileInstall(File file)
         {
+            int errRow = 0, errCol = 0;
+            string errFile = "", errText = "";
+            ISymCommand cmd;
+
             if (file.Type != FileType.RepGen)
                 throw new Exception("Cannot Install a " + file.FileTypeString() + " File");
 
-            _socket.Write("mm3\u001B");
+            _socket.Write("mm3\u001B"); 
+            cmd = _socket.ReadCommand();
+            LogCommand(cmd);
             _socket.Write("8\r");
+            cmd = _socket.ReadCommand();
+            LogCommand(cmd);
             _socket.Write(file.Name + '\r');
 
-            ISymCommand cmd = _socket.ReadCommand();
-            if (cmd.HasParameter("Warning") || cmd.HasParameter("Error"))
-            {
-                throw new FileNotFoundException();
-            }
+            cmd = _socket.ReadCommand();
+            LogCommand(cmd);
 
-            if (cmd.Command == "SpecfileData")
+            var startTime = DateTime.Now;
+            while (!cmd.HasParameter("Action"))
             {
-                _socket.Write("1\r");
-                while (!cmd.HasParameter("Size"))
+                if ((DateTime.Now - startTime).TotalSeconds > 15)
                 {
-                    cmd = _socket.ReadCommand();
+                    throw new TimeoutException("Specfile Install Timeout");
                 }
-                return SpecfileResult.Success(int.Parse(cmd.Get("Size").Replace(",", "")));
+
+                if (cmd.Get("Type") == "Warning" || cmd.HasParameter("Warning") ||
+                    cmd.Get("Type") == "Error" || cmd.HasParameter("Error"))
+                {
+                    throw new FileNotFoundException();
+                }
+                
+                if (cmd.Command == "SpecfileData")
+                {
+                    _socket.Write("1\r");
+                    while (!cmd.HasParameter("Size"))
+                    {
+                        cmd = _socket.ReadCommand();
+                        LogCommand(cmd);
+                    }
+                    return SpecfileResult.Success(int.Parse(cmd.Get("Size").Replace(",", "")));
+                }
+
+                cmd = _socket.ReadCommand();
+                LogCommand(cmd);
             }
 
-            int errRow = 0, errCol = 0;
-            string errFile = "", errText = "";
             if (cmd.Get("Action") == "Init")
             {
                 errFile = cmd.Get("FileName");
-                cmd = _socket.ReadCommand();
-                while (cmd.Get("Action") != "DisplayEdit")
-                {
-                    if (cmd.Get("Action") == "FileInfo")
-                    {
-                        errRow = int.Parse(cmd.Get("Line").Replace(",", ""));
-                        errCol = int.Parse(cmd.Get("Col").Replace(",", ""));
-                    }
-                    else if (cmd.Get("Action") == "ErrText")
-                        errText += cmd.Get("Line") + " ";
-                    cmd = _socket.ReadCommand();
-                }
-                return new SpecfileResult(file, errFile, errText, errRow, errCol);
             }
 
-            // Handle possibility of Action=Init being
-            // passed over too early
-            var startTime = DateTime.Now;
+            startTime = DateTime.Now;
+            cmd = _socket.ReadCommand();
             while (cmd.Get("Action") != "DisplayEdit")
             {
                 if ((DateTime.Now - startTime).TotalSeconds > 5)
                 {
-                    throw new Exception("Unknown Install Error");
+                    throw new TimeoutException("Specfile Install Timeout");
                 }
-
                 if (cmd.Get("Action") == "FileInfo")
                 {
                     errRow = int.Parse(cmd.Get("Line").Replace(",", ""));
@@ -345,6 +352,7 @@ namespace Symitar
                 else if (cmd.Get("Action") == "ErrText")
                     errText += cmd.Get("Line") + " ";
                 cmd = _socket.ReadCommand();
+                LogCommand(cmd);
             }
             return new SpecfileResult(file, errFile, errText, errRow, errCol);
         }
