@@ -80,9 +80,8 @@ namespace Symitar
                     contents = contents.Substring(contents.IndexOf("(newline when done):") + 21);
 
                     string name = contents.Substring(0, contents.IndexOf('\n'));
-                    if (name == repName)
-                        if ((time + 1 == currTime) || (time == currTime) || (time - 1 == currTime))
-                            return i;
+                    if (name == repName && Math.Abs(time - currTime) <= 1)
+                        return i;
                 }
             }
             return -1;
