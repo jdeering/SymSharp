@@ -34,7 +34,7 @@ namespace Symitar
             return running;
         }
 
-        private List<int> GetPrintSequences(string which)
+        private List<int> GetPrintSequences(string searchTerm)
         {
             List<int> seqs = new List<int>();
             ISymCommand cmd;
@@ -42,7 +42,7 @@ namespace Symitar
             cmd = new SymCommand("File");
             cmd.Set("Action", "List");
             cmd.Set("MaxCount", "50");
-            cmd.Set("Query", "LAST 20 \"+" + which + "+\"");
+            cmd.Set("Query", "LAST 20 \"+" + searchTerm + "+\"");
             cmd.Set("Type", "Report");
             _socket.Write(cmd);
 
@@ -59,7 +59,7 @@ namespace Symitar
             return seqs;
         }
 
-        public int GetReportSequence(string repName, int time)
+        public int GetReportSequence(string reportName, int time)
         {
             List<int> seqs = GetPrintSequences("REPWRITER");
             foreach (int i in seqs)
@@ -80,7 +80,7 @@ namespace Symitar
                     contents = contents.Substring(contents.IndexOf("(newline when done):") + 21);
 
                     string name = contents.Substring(0, contents.IndexOf('\n'));
-                    if (name == repName && Math.Abs(time - currTime) <= 1)
+                    if (name == reportName && Math.Abs(time - currTime) <= 1)
                         return i;
                 }
             }
@@ -165,38 +165,12 @@ namespace Symitar
             while (cmd.Command != "Input")
                 cmd = _socket.ReadCommand();
 
-            callStatus(6, "Getting Queue List");
             _socket.Write("0\r");
-            cmd = _socket.ReadCommand();
-            Dictionary<int, int> queAvailable = new Dictionary<int, int>();
-            while (cmd.Command != "Input")
-            {
-                if ((cmd.Get("Action") == "DisplayLine") && (cmd.Get("Text").Contains("Batch Queues Available:")))
-                {
-                    string line = cmd.Get("Text");
-                    string[] strQueues = line.Substring(line.IndexOf(':') + 1).Split(new char[] { ',' });
-                    for (int i = 0; i < strQueues.Length; i++)
-                    {
-                        strQueues[i] = strQueues[i].Trim();
-                        if (strQueues[i].Contains("-"))
-                        {
-                            int pos = strQueues[i].IndexOf('-');
-                            int start = int.Parse(strQueues[i].Substring(0, pos));
-                            int end = int.Parse(strQueues[i].Substring(pos + 1));
-                            for (int c = start; c <= end; c++)
-                                queAvailable.Add(c, 0);
-                        }
-                        else
-                            queAvailable.Add(int.Parse(strQueues[i]), 0);
-                    }
-                }
-                cmd = _socket.ReadCommand();
-            }
 
             if (queue < 0)
                 queue = GetQueue(callStatus);
 
-            _socket.Write(queue.ToString() + "\r");
+            _socket.Write(queue + "\r");
             cmd = _socket.ReadCommand();
             while (cmd.Command != "Input")
                 cmd = _socket.ReadCommand();
