@@ -208,7 +208,10 @@ namespace Symitar
                     var end = data.IndexOf(commandEnd, start + commandStart.Length);
 
                     if (end - start - commandStart.Length <= 0) // No data to parse
+                    {
+                        start = data.IndexOf(commandStart);
                         continue;
+                    }
 
                     var commandString = data.Substring(start + commandStart.Length, end - start - commandStart.Length);
 
@@ -226,7 +229,6 @@ namespace Symitar
                     }
 
                     _commands.Enqueue(newCommand);
-
 
                     start = data.IndexOf(commandStart);
                 }
