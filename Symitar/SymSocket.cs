@@ -236,7 +236,7 @@ namespace Symitar
                     if (newCommand.Command == "File")
                     {
                         var nextStart = _data.IndexOf(commandStart);
-                        if (nextStart >= 0)
+                        if (nextStart > 2)
                         {
                             newCommand.Data = _data.Substring(0, nextStart - 2);
                             _data = _data.Substring(nextStart);
