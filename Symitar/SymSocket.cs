@@ -207,6 +207,9 @@ namespace Symitar
                 {
                     var end = data.IndexOf(commandEnd, start + commandStart.Length);
 
+                    if (end - start - commandStart.Length <= 0) // No data to parse
+                        continue;
+
                     var commandString = data.Substring(start + commandStart.Length, end - start - commandStart.Length);
 
                     var newCommand = SymCommand.Parse(commandString);
