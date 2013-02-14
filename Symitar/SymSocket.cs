@@ -15,6 +15,7 @@ namespace Symitar
     {
         private const int DefaultTimeout = 5000;
         private const int KeepAliveInterval = 45000;
+        private string _data;
 
         private ISocketSemaphore _clientLock;
         private ITcpAdapter _client;
@@ -75,6 +76,7 @@ namespace Symitar
 
         private void Initialize(ITcpAdapter tcpClient = null)
         {
+            _data = "";
             _commands = new Queue<ISymCommand>();
             _client = tcpClient;
             _keepAliveThread = null;
@@ -88,6 +90,7 @@ namespace Symitar
 
         private void Initialize(ITcpAdapter tcpClient, ISocketSemaphore semaphore)
         {
+            _data = "";
             _commands = new Queue<ISymCommand>();
             _client = tcpClient;
             _keepAliveThread = null;
@@ -196,41 +199,53 @@ namespace Symitar
 
         public ISymCommand ReadCommand()
         {
-            var data = Read();
-            if (!string.IsNullOrEmpty(data))
+            _data += Read();
+            if (!string.IsNullOrEmpty(_data))
             {
                 var commandStart = Encoding.ASCII.GetString(new byte[] {0x1b, 0xfe});
                 var commandEnd = Encoding.ASCII.GetString(new byte[] {0xfc});
 
-                int start = data.IndexOf(commandStart);
+                int start = _data.IndexOf(commandStart);
                 while (start >= 0)
                 {
-                    var end = data.IndexOf(commandEnd, start + commandStart.Length);
+                    string commandString;
+                    var end = _data.IndexOf(commandEnd, start + commandStart.Length);
 
                     if (end - start - commandStart.Length <= 0) // No data to parse
                     {
-                        start = data.IndexOf(commandStart);
-                        continue;
+                        var newData = Read();
+                        _data += newData;
+                        if (newData.Length == 0)
+                        {
+                            commandString = _data.Substring(start + commandStart.Length);
+                        }
+                        else
+                        {
+                            start = _data.IndexOf(commandStart);
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        commandString = _data.Substring(start + commandStart.Length, end - start - commandStart.Length);
                     }
 
-                    var commandString = data.Substring(start + commandStart.Length, end - start - commandStart.Length);
-
                     var newCommand = SymCommand.Parse(commandString);
-                    data = data.Substring(end + commandEnd.Length);
+                    _data = _data.Substring(start + commandStart.Length + commandString.Length);
 
                     if (newCommand.Command == "File")
                     {
-                        var nextStart = data.IndexOf(commandStart);
+                        var nextStart = _data.IndexOf(commandStart);
                         if (nextStart >= 0)
                         {
-                            newCommand.Data = data.Substring(0, nextStart - 2);
-                            data = data.Substring(nextStart);
+                            newCommand.Data = _data.Substring(0, nextStart - 2);
+                            _data = _data.Substring(nextStart);
                         }
                     }
 
                     _commands.Enqueue(newCommand);
-
-                    start = data.IndexOf(commandStart);
+                    
+                    start = _data.IndexOf(commandStart);
                 }
             }
 
