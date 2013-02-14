@@ -16,6 +16,7 @@ namespace Symitar
         private IPEndPoint _endPoint;
         private string _address;
         private int _port;
+        private Semaphore _lock;
 
         private List<byte> _log; 
         private string _workingData;
@@ -24,6 +25,11 @@ namespace Symitar
         public bool Connected
         {
             get { return _socket != null && _socket.Connected; }
+        }
+
+        public SocketAdapter()
+        {
+            _lock = new Semaphore(1, 1);
         }
 
         public void Connect(string server, int port)
@@ -71,9 +77,10 @@ namespace Symitar
                 // Write out the data
                 //if (workingData.IndexOf("[c") != -1) Negotiate(1);
                 //if (workingData.IndexOf("[6n") != -1) Negotiate(2);
+                _lock.WaitOne(500);
                 _log.AddRange(_buffer);
                 _workingData += workingData;
-
+                _lock.Release();
                 // Launch another callback to listen for data
                 var recieveData = new AsyncCallback(OnRecievedData);
                 sock.BeginReceive(_buffer, 0, _buffer.Length, SocketFlags.None, recieveData, sock);
@@ -167,8 +174,10 @@ namespace Symitar
             string result = _workingData.Substring(0, end);
             if (_workingData.Length > end)
             {
+                _lock.WaitOne(500);
                 _log = _log.Skip(end).ToList();
                 _workingData = _workingData.Substring(end);
+                _lock.Release();
             }
             else
             {
@@ -194,8 +203,10 @@ namespace Symitar
             string result = _workingData.Substring(0, end);
             if (_workingData.Length > end)
             {
+                _lock.WaitOne(500);
                 _log = _log.Skip(end).ToList();
                 _workingData = _workingData.Substring(end);
+                _lock.Release();
             }
             else
             {
