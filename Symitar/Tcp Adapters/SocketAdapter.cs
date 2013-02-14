@@ -18,8 +18,7 @@ namespace Symitar
         private int _port;
         private Semaphore _lock;
 
-        private List<byte> _log; 
-        private string _workingData;
+        private List<byte> _workingData;
         private byte[] _buffer;
 
         public bool Connected
@@ -36,7 +35,7 @@ namespace Symitar
         {
             _address = server;
             _port = port;
-            _log = new List<byte>(256);
+            _workingData = new List<byte>(256);
             _buffer = new byte[256];
 
             var ipHost = Dns.GetHostEntry(_address);
@@ -78,8 +77,7 @@ namespace Symitar
                 //if (workingData.IndexOf("[c") != -1) Negotiate(1);
                 //if (workingData.IndexOf("[6n") != -1) Negotiate(2);
                 _lock.WaitOne(500);
-                _log.AddRange(_buffer);
-                _workingData += workingData;
+                _workingData.AddRange(_buffer);
                 _lock.Release();
                 // Launch another callback to listen for data
                 var recieveData = new AsyncCallback(OnRecievedData);
@@ -157,73 +155,23 @@ namespace Symitar
             Thread.Sleep(25); // Adding a 25 ms sleep to allow server to respond
         }
 
-        public string Read()
+        public byte[] Read()
         {
-            string data = _workingData;
+            _lock.WaitOne(500);
+            var data = _workingData.ToArray();
             ClearWorkingData();
+            _lock.Release();
             return data;
         }
 
-        public string ReadTo(string data)
+        public bool Find(byte[] matcher)
         {
-            if (string.IsNullOrEmpty(_workingData) || _workingData.IndexOf(data) < 0) 
-                return string.Empty;
-
-            var end = _workingData.IndexOf(data) + data.Length;
-            
-            string result = _workingData.Substring(0, end);
-            if (_workingData.Length > end)
-            {
-                _lock.WaitOne(500);
-                _log = _log.Skip(end).ToList();
-                _workingData = _workingData.Substring(end);
-                _lock.Release();
-            }
-            else
-            {
-                ClearWorkingData();
-            }
-            return result;
-        }
-
-        public string ReadTo(byte[] data)
-        {
-            int end = -1;
-            for (var i = 0; i < _log.Count - data.Length; i++)
-            {
-                if (_log.GetRange(i, data.Length).ToArray() == data)
-                {
-                    end = i + data.Length - 1;
-                    break;
-                }
-            }
-
-            if (end < 0) return string.Empty;
-
-            string result = _workingData.Substring(0, end);
-            if (_workingData.Length > end)
-            {
-                _lock.WaitOne(500);
-                _log = _log.Skip(end).ToList();
-                _workingData = _workingData.Substring(end);
-                _lock.Release();
-            }
-            else
-            {
-                ClearWorkingData();
-            }
-            return result;
-        }
-
-        public bool Find(string data)
-        {
-            return _workingData.Contains(data);
+            return Encoding.ASCII.GetString(_workingData.ToArray()).Contains(Encoding.ASCII.GetString(matcher));
         }
 
         private void ClearWorkingData()
         {
-            _log.Clear();
-            _workingData = "";
+            _workingData.Clear();
         }
     }
 }

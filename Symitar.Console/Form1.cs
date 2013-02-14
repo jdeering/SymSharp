@@ -64,9 +64,22 @@ namespace Symitar.Console
             var message = messageBox.Text;
             messageBox.Text = "";
 
+            //FileInstallTest(message);
+            FileReadTest(message, FileType.RepGen);
+        }
+
+        private void FileReadTest(string fileName, FileType fileType)
+        {
+            var contents = _session.FileRead(fileName, fileType);
+
+            LogResponse(contents);
+        }
+
+        private void FileInstallTest(string fileName)
+        {
             try
             {
-                var file = new File() {Name = message, Type = FileType.RepGen};
+                var file = new File() { Name = fileName, Type = FileType.RepGen };
                 var result = _session.FileInstall(file);
                 LogResponse(_session.Log.Aggregate((a, b) => a + "\n" + b));
 

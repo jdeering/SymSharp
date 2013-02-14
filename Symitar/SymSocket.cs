@@ -22,6 +22,8 @@ namespace Symitar
         private DateTime _lastActivity;
         private bool _keepAliveActive;
 
+        private Queue<ISymCommand> _commands;
+
         public string Server { get; set; }
         public int Port { get; set; }
 
@@ -73,6 +75,7 @@ namespace Symitar
 
         private void Initialize(ITcpAdapter tcpClient = null)
         {
+            _commands = new Queue<ISymCommand>();
             _client = tcpClient;
             _keepAliveThread = null;
             _keepAliveActive = false;
@@ -85,6 +88,7 @@ namespace Symitar
 
         private void Initialize(ITcpAdapter tcpClient, ISocketSemaphore semaphore)
         {
+            _commands = new Queue<ISymCommand>();
             _client = tcpClient;
             _keepAliveThread = null;
             _keepAliveActive = false;
@@ -163,7 +167,7 @@ namespace Symitar
 
         public void Write(string data)
         {
-            _client.Write(data);
+            _client.Write(Encoding.ASCII.GetBytes(data));
         }
 
         public void Write(ISymCommand cmd)
@@ -187,17 +191,47 @@ namespace Symitar
 
         public string Read()
         {
-            return _client.Read();
+            return Encoding.ASCII.GetString(_client.Read());
         }
 
         public ISymCommand ReadCommand()
         {
-            _client.ReadTo(Encoding.ASCII.GetString(new byte[] { 0x1b, 0xfe }));
-            string data = _client.ReadTo(Encoding.ASCII.GetString(new byte[] { 0xfc }));
+            var data = Read();
+            if (!string.IsNullOrEmpty(data))
+            {
+                var commandStart = Encoding.ASCII.GetString(new byte[] {0x1b, 0xfe});
+                var commandEnd = Encoding.ASCII.GetString(new byte[] {0xfc});
 
-            if(data.Length == 0) return SymCommand.Parse("");
+                int start = data.IndexOf(commandStart);
+                while (start >= 0)
+                {
+                    var end = data.IndexOf(commandEnd, start + commandStart.Length);
 
-            ISymCommand cmd = SymCommand.Parse(data.Substring(0, data.Length - 1));
+                    var commandString = data.Substring(start + commandStart.Length, end - start - commandStart.Length);
+
+                    var newCommand = SymCommand.Parse(commandString);
+                    data = data.Substring(end + commandEnd.Length);
+
+                    if (newCommand.Command == "File")
+                    {
+                        var nextStart = data.IndexOf(commandStart);
+                        if (nextStart >= 0)
+                        {
+                            newCommand.Data = data.Substring(0, nextStart - 2);
+                            data = data.Substring(nextStart);
+                        }
+                    }
+
+                    _commands.Enqueue(newCommand);
+
+
+                    start = data.IndexOf(commandStart);
+                }
+            }
+
+            if (_commands.Count == 0) return SymCommand.Parse("");
+
+            var cmd = _commands.Dequeue();
             if ((cmd.Command == "MsgDlg") && (cmd.HasParameter("Text")))
                 if (cmd.Get("Text").IndexOf("From PID") != -1)
                     cmd = ReadCommand();
@@ -220,7 +254,7 @@ namespace Symitar
 
                 for (var i = 0; i < matchers.Length; i++)
                 {
-                    if (_client.Find(matchers[i]))  
+                    if (_client.Find(Encoding.ASCII.GetBytes(matchers[i])))
                         return i;
                 }
             }
@@ -275,7 +309,7 @@ namespace Symitar
                         {
                             try
                             {
-                                _client.Write(wakeCmd.ToString());
+                                _client.Write(Encoding.ASCII.GetBytes(wakeCmd.ToString()));
                                 _lastActivity = DateTime.Now;
                             }
                             catch (Exception)

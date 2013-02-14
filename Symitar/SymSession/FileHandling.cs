@@ -141,8 +141,8 @@ namespace Symitar
                     throw new Exception("Filename Too Long");
                 }
 
-                string chunk = cmd.GetFileData();
-                if (chunk.Length > 0)
+                string chunk = cmd.Data;
+                if (!string.IsNullOrEmpty(chunk))
                 {
                     content.Append(chunk);
                     if (type == Symitar.FileType.Report)
