@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using FluentAssertions;
 using NUnit.Framework;
 
@@ -14,13 +11,14 @@ namespace Symitar.Tests
         // Added this as a local counter to match
         // the static counter in SymCommand without
         // having to manipulate it every time.
-        private static int ExpectedId = 9999;
 
         [SetUp]
         public void UpdateMsgIdCounter()
         {
             ExpectedId++;
         }
+
+        private static int ExpectedId = 9999;
 
         [Test]
         public void Constructor_NoArguments_ShouldHaveParameterMsgId()
@@ -30,44 +28,21 @@ namespace Symitar.Tests
         }
 
         [Test]
-        public void Constructor_WithCommand_ShouldHaveParameterMsgId()
+        public void Constructor_WithCommandAndParam_ShouldHaveCorrectCommand()
         {
-            var cmd = new SymCommand("Command");
-            cmd.HasParameter("MsgId").Should().BeTrue();
-        }
+            var parameters = new Dictionary<string, string> {{"Initial", "1"}};
+            var cmd = new SymCommand("Command", parameters);
 
-        [Test]
-        public void Constructor_WithCommand_ShouldHaveCorrectCommand()
-        {
-            var cmd = new SymCommand("Command");
             cmd.Command.Should().Be("Command");
         }
 
         [Test]
         public void Constructor_WithCommandAndParam_ShouldHaveParameterMsgId()
         {
-            var parameters = new Dictionary<string, string> { { "Initial", "1" } };
+            var parameters = new Dictionary<string, string> {{"Initial", "1"}};
             var cmd = new SymCommand("Command", parameters);
 
             cmd.HasParameter("MsgId").Should().BeTrue();
-        }
-
-        [Test]
-        public void Constructor_WithCommandAndParam_ShouldHaveCorrectCommand()
-        {
-            var parameters = new Dictionary<string, string> { { "Initial", "1" } };
-            var cmd = new SymCommand("Command", parameters);
-
-            cmd.Command.Should().Be("Command");
-        }
-
-        [Test]
-        public void Constructor_WithCommandAndParam_ShouldHaveTheParameter()
-        {
-            var parameters = new Dictionary<string, string> { { "Initial", "1" } };
-            var cmd = new SymCommand("Command", parameters);
-
-            cmd.HasParameter("Initial").Should().BeTrue();
         }
 
         [Test]
@@ -80,154 +55,54 @@ namespace Symitar.Tests
         }
 
         [Test]
-        public void Constructor_WithCommandParamAndData_ShouldHaveData()
+        public void Constructor_WithCommandAndParam_ShouldHaveTheParameter()
         {
-            var parameters = new Dictionary<string, string> { { "Initial", "1" } };
-            var cmd = new SymCommand("Command", parameters, "data");
+            var parameters = new Dictionary<string, string> {{"Initial", "1"}};
+            var cmd = new SymCommand("Command", parameters);
 
-            cmd.Data.Should().NotBeBlank();
+            cmd.HasParameter("Initial").Should().BeTrue();
         }
 
         [Test]
         public void Constructor_WithCommandParamAndData_ShouldHaveCorrectData()
         {
-            var parameters = new Dictionary<string, string> { { "Initial", "1" } };
+            var parameters = new Dictionary<string, string> {{"Initial", "1"}};
             var cmd = new SymCommand("Command", parameters, "data");
 
             cmd.Data.Should().Be("data");
         }
 
         [Test]
-        public void Parse_WithNoTildes_ShouldHaveHaveBlankData()
+        public void Constructor_WithCommandParamAndData_ShouldHaveData()
         {
-            var cmd = SymCommand.Parse("CommandMessage");
-            cmd.Data.Should().BeBlank();
+            var parameters = new Dictionary<string, string> {{"Initial", "1"}};
+            var cmd = new SymCommand("Command", parameters, "data");
+
+            cmd.Data.Should().NotBeBlank();
         }
 
         [Test]
-        public void Parse_WithNoTildes_ShouldHaveHaveOneParameter()
+        public void Constructor_WithCommand_ShouldHaveCorrectCommand()
         {
-            var cmd = SymCommand.Parse("CommandMessage");
-            cmd.Parameters.Count.Should().Be(1);
+            var cmd = new SymCommand("Command");
+            cmd.Command.Should().Be("Command");
         }
 
         [Test]
-        public void Parse_WithNoTildes_ShouldHaveCorrectCommand()
+        public void Constructor_WithCommand_ShouldHaveParameterMsgId()
         {
-            var cmd = SymCommand.Parse("CommandMessage");
-            cmd.Command.Should().Be("CommandMessage");
+            var cmd = new SymCommand("Command");
+            cmd.HasParameter("MsgId").Should().BeTrue();
         }
 
         [Test]
-        public void Parse_WithParameter_ShouldHaveEmptyData()
-        {
-            var cmd = SymCommand.Parse("CommandMessage");
-            cmd.Data.Should().BeBlank();
-        }
-
-        [Test]
-        public void Parse_WithParameter_ShouldHave2Parameters()
-        {
-            var cmd = SymCommand.Parse("CommandMessage~Parameter1=RandomValue");
-            cmd.Parameters.Count.Should().Be(2);
-        }
-
-        [Test]
-        public void Parse_WithParameter_ShouldHaveTheSpecifiedParameter()
-        {
-            var cmd = SymCommand.Parse("CommandMessage~Parameter1=RandomValue");
-            cmd.HasParameter("Parameter1").Should().BeTrue();
-        }
-
-        [Test]
-        public void Parse_WithParameter_ShouldHaveTheCorrectParameterValue()
-        {
-            var cmd = SymCommand.Parse("CommandMessage~Parameter1=RandomValue");
-            cmd.Get("Parameter1").Should().Be("RandomValue");
-        }
-
-        [Test]
-        public void Parse_WithParameter_ShouldHaveCorrectCommand()
-        {
-            var cmd = SymCommand.Parse("CommandMessage~Parameter1=RandomValue");
-            cmd.Command.Should().Be("CommandMessage");
-        }
-
-        [Test]
-        public void Parse_WithParameterWithNoValue_ShouldHaveParameter()
-        {
-            var cmd = SymCommand.Parse("CommandMessage~Parameter1");
-            cmd.HasParameter("Parameter1").Should().BeTrue();
-        }
-
-        [Test]
-        public void Parse_WithParameterWithNoValue_ShouldHaveParameterValueBlank()
-        {
-            var cmd = SymCommand.Parse("CommandMessage~Parameter1");
-            cmd.Get("Parameter1").Should().BeBlank();
-        }
-
-        [Test]
-        public void ToString_WithNoAddedParameters_ShouldBeCorrect()
-        {
-            var cmd = SymCommand.Parse("CommandMessage");
-            cmd.ToString().Should().Contain("CommandMessage");
-        }
-
-        [Test]
-        public void ToString_WithAddedParameter_ShouldBeCorrect()
-        {
-            var cmd = SymCommand.Parse("CommandMessage~Parameter1=Value");
-            cmd.ToString().Should().Contain("~Parameter1=Value");
-        }
-
-        [Test]
-        public void ToString_WithAddedParameterMissingValue_ShouldBeCorrect()
-        {
-            var cmd = SymCommand.Parse("CommandMessage~Parameter1");
-            cmd.ToString().Should().Contain("Parameter1");
-        }
-
-        [Test]
-        public void Set_NewParameter_ParameterShouldExist()
-        {
-            var cmd = new SymCommand();
-            cmd.Set("Parameter3", "RandomValue");
-            cmd.Parameters.ContainsKey("Parameter3").Should().BeTrue();
-        }
-
-        [Test]
-        public void Set_NewParameter_ParameterShouldHaveCorrectValue()
-        {
-            var cmd = new SymCommand();
-            cmd.Set("Parameter3", "RandomValue");
-            cmd.Parameters["Parameter3"].Should().Be("RandomValue");
-        }
-
-        [Test]
-        public void Set_ExistingParameter_ParameterShouldHaveNewValue()
-        {
-            var cmd = SymCommand.Parse("CommandMessage~Parameter1=Value");
-            cmd.Set("Parameter1", "NewValue");
-            cmd.Parameters["Parameter1"].Should().Be("NewValue");
-        }
-
-        [Test]
-        public void GetFileData_EmptyData_ShouldReturnEmptyString()
+        public void GetFileData_CorrectFormatData_ShouldReturnCorrectFileData()
         {
             var cmd = new SymCommand();
 
-            cmd.GetFileData().Should().BeBlank();
-        }
+            cmd.Data = "\u00FDFile Data\u00FE";
 
-        [Test]
-        public void GetFileData_IncorrectFormattedData_ShouldReturnEmptyString()
-        {
-            var cmd = new SymCommand();
-
-            cmd.Data = "RandomData";
-
-            cmd.GetFileData().Should().BeBlank();
+            cmd.GetFileData().Should().Be("File Data");
         }
 
         [Test]
@@ -251,6 +126,35 @@ namespace Symitar.Tests
         }
 
         [Test]
+        public void GetFileData_DataWithIncorrectDelimiterOrder_ShouldThrowException()
+        {
+            var cmd = new SymCommand();
+
+            cmd.Data = "\u00FEFile Data\u00FD";
+
+            Assert.Throws<ArgumentOutOfRangeException>(
+                () => { cmd.GetFileData(); });
+        }
+
+        [Test]
+        public void GetFileData_EmptyData_ShouldReturnEmptyString()
+        {
+            var cmd = new SymCommand();
+
+            cmd.GetFileData().Should().BeBlank();
+        }
+
+        [Test]
+        public void GetFileData_IncorrectFormattedData_ShouldReturnEmptyString()
+        {
+            var cmd = new SymCommand();
+
+            cmd.Data = "RandomData";
+
+            cmd.GetFileData().Should().BeBlank();
+        }
+
+        [Test]
         public void GetFileData_NoDataBetweenDelimiters_ShouldReturnEmptyString()
         {
             var cmd = new SymCommand();
@@ -261,27 +165,118 @@ namespace Symitar.Tests
         }
 
         [Test]
-        public void GetFileData_DataWithIncorrectDelimiterOrder_ShouldThrowException()
+        public void Parse_WithNoTildes_ShouldHaveCorrectCommand()
         {
-            var cmd = new SymCommand();
-
-            cmd.Data = "\u00FEFile Data\u00FD";
-
-            Assert.Throws<ArgumentOutOfRangeException>(
-                () =>
-                {
-                    cmd.GetFileData();
-                });
+            SymCommand cmd = SymCommand.Parse("CommandMessage");
+            cmd.Command.Should().Be("CommandMessage");
         }
 
         [Test]
-        public void GetFileData_CorrectFormatData_ShouldReturnCorrectFileData()
+        public void Parse_WithNoTildes_ShouldHaveHaveBlankData()
+        {
+            SymCommand cmd = SymCommand.Parse("CommandMessage");
+            cmd.Data.Should().BeBlank();
+        }
+
+        [Test]
+        public void Parse_WithNoTildes_ShouldHaveHaveOneParameter()
+        {
+            SymCommand cmd = SymCommand.Parse("CommandMessage");
+            cmd.Parameters.Count.Should().Be(1);
+        }
+
+        [Test]
+        public void Parse_WithParameterWithNoValue_ShouldHaveParameter()
+        {
+            SymCommand cmd = SymCommand.Parse("CommandMessage~Parameter1");
+            cmd.HasParameter("Parameter1").Should().BeTrue();
+        }
+
+        [Test]
+        public void Parse_WithParameterWithNoValue_ShouldHaveParameterValueBlank()
+        {
+            SymCommand cmd = SymCommand.Parse("CommandMessage~Parameter1");
+            cmd.Get("Parameter1").Should().BeBlank();
+        }
+
+        [Test]
+        public void Parse_WithParameter_ShouldHave2Parameters()
+        {
+            SymCommand cmd = SymCommand.Parse("CommandMessage~Parameter1=RandomValue");
+            cmd.Parameters.Count.Should().Be(2);
+        }
+
+        [Test]
+        public void Parse_WithParameter_ShouldHaveCorrectCommand()
+        {
+            SymCommand cmd = SymCommand.Parse("CommandMessage~Parameter1=RandomValue");
+            cmd.Command.Should().Be("CommandMessage");
+        }
+
+        [Test]
+        public void Parse_WithParameter_ShouldHaveEmptyData()
+        {
+            SymCommand cmd = SymCommand.Parse("CommandMessage");
+            cmd.Data.Should().BeBlank();
+        }
+
+        [Test]
+        public void Parse_WithParameter_ShouldHaveTheCorrectParameterValue()
+        {
+            SymCommand cmd = SymCommand.Parse("CommandMessage~Parameter1=RandomValue");
+            cmd.Get("Parameter1").Should().Be("RandomValue");
+        }
+
+        [Test]
+        public void Parse_WithParameter_ShouldHaveTheSpecifiedParameter()
+        {
+            SymCommand cmd = SymCommand.Parse("CommandMessage~Parameter1=RandomValue");
+            cmd.HasParameter("Parameter1").Should().BeTrue();
+        }
+
+        [Test]
+        public void Set_ExistingParameter_ParameterShouldHaveNewValue()
+        {
+            SymCommand cmd = SymCommand.Parse("CommandMessage~Parameter1=Value");
+            cmd.Set("Parameter1", "NewValue");
+            cmd.Parameters["Parameter1"].Should().Be("NewValue");
+        }
+
+        [Test]
+        public void Set_NewParameter_ParameterShouldExist()
         {
             var cmd = new SymCommand();
+            cmd.Set("Parameter3", "RandomValue");
+            cmd.Parameters.ContainsKey("Parameter3").Should().BeTrue();
+        }
 
-            cmd.Data = "\u00FDFile Data\u00FE";
+        [Test]
+        public void Set_NewParameter_ParameterShouldHaveCorrectValue()
+        {
+            var cmd = new SymCommand();
+            cmd.Set("Parameter3", "RandomValue");
+            cmd.Parameters["Parameter3"].Should().Be("RandomValue");
+        }
 
-            cmd.GetFileData().Should().Be("File Data");
+        [Test]
+        public void ToString_WithAddedParameterMissingValue_ShouldBeCorrect()
+        {
+            SymCommand cmd = SymCommand.Parse("CommandMessage~Parameter1");
+            cmd.ToString().Should().Contain("Parameter1");
+        }
+
+        [Test]
+        public void ToString_WithAddedParameter_ShouldBeCorrect()
+        {
+            SymCommand cmd = SymCommand.Parse("CommandMessage~Parameter1=Value");
+            cmd.ToString().Should().Contain("~Parameter1=Value");
+        }
+
+        [Test]
+        public void ToString_WithNoAddedParameters_ShouldBeCorrect()
+        {
+            SymCommand cmd = SymCommand.Parse("CommandMessage");
+            cmd.ToString().Should().Contain("CommandMessage");
         }
     }
 }

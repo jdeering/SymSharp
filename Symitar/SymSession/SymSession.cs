@@ -1,9 +1,4 @@
 using System;
-using System.IO;
-using System.Net;
-using System.Text;
-using System.Threading;
-using System.Net.Sockets;
 using System.Collections.Generic;
 using Symitar.Interfaces;
 
@@ -11,46 +6,14 @@ namespace Symitar
 {
     public partial class SymSession
     {
-        private ISymSocket _socket;
-        public ISymSocket Socket
-        {
-            get { return _socket; }
-        }
-
-        private string _server;
-        private int _port;
-        private string _username;
-        private string _password;
-        private string _userId;
-
-        public int SymDirectory { get; set; }
-
         private string _error;
-        public string Error
-        {
-            get { return _error; }
-        }
-
         private bool _loggedIn;
-        public bool LoggedIn
-        {
-            get { return _loggedIn; }
-        }
-
-        public bool Connected
-        {
-            get { return _socket.Connected; }
-        }
-
-        public List<string> Log { get; private set; }
-
-        private void LogCommand(ISymCommand cmd)
-        {
-            if (!string.IsNullOrEmpty(cmd.Command))
-            {
-                Log.Add(cmd.ToString());
-            }
-        }
+        private string _password;
+        private int _port;
+        private string _server;
+        private ISymSocket _socket;
+        private string _userId;
+        private string _username;
 
         public SymSession()
         {
@@ -76,6 +39,38 @@ namespace Symitar
             SymDirectory = symDirectory;
         }
 
+        public ISymSocket Socket
+        {
+            get { return _socket; }
+        }
+
+        public int SymDirectory { get; set; }
+
+        public string Error
+        {
+            get { return _error; }
+        }
+
+        public bool LoggedIn
+        {
+            get { return _loggedIn; }
+        }
+
+        public bool Connected
+        {
+            get { return _socket.Connected; }
+        }
+
+        public List<string> Log { get; private set; }
+
+        private void LogCommand(ISymCommand cmd)
+        {
+            if (!string.IsNullOrEmpty(cmd.Command))
+            {
+                Log.Add(cmd.ToString());
+            }
+        }
+
         private void Initialize()
         {
             _error = "";
@@ -83,13 +78,13 @@ namespace Symitar
 
             Log = new List<string>();
         }
-        
+
         public bool Connect(string server, int port)
         {
-            if(string.IsNullOrEmpty(server)) throw new ArgumentNullException("server");
-            if(port <= 0) throw new ArgumentOutOfRangeException("port");
+            if (string.IsNullOrEmpty(server)) throw new ArgumentNullException("server");
+            if (port <= 0) throw new ArgumentOutOfRangeException("port");
 
-            
+
             _server = server;
             _port = port;
 
@@ -106,7 +101,7 @@ namespace Symitar
 
         public void Disconnect()
         {
-            if(_socket != null)
+            if (_socket != null)
                 _socket.Disconnect();
         }
 
@@ -140,7 +135,7 @@ namespace Symitar
             if (directory < 0 || directory > 999) throw new ArgumentOutOfRangeException("directory");
             if (string.IsNullOrEmpty(symUserId)) throw new ArgumentNullException("symUserId");
             if (stage < 0) throw new ArgumentOutOfRangeException("stage");
-            
+
             _username = aixUsername;
             _password = aixPassword;
             _userId = symUserId;
@@ -151,10 +146,10 @@ namespace Symitar
             //Telnet Handshake
             try
             {
-                _socket.Write(new byte[] { 0xFF, 0xFB, 0x18 });
-                _socket.Write(new byte[] { 0xFF, 0xFA, 0x18, 0x00, 0x61, 0x69, 0x78, 0x74, 0x65, 0x72, 0x6D, 0xFF, 0xF0 });
-                _socket.Write(new byte[] { 0xFF, 0xFD, 0x01 });
-                _socket.Write(new byte[] { 0xFF, 0xFD, 0x03, 0xFF, 0xFC, 0x1F, 0xFF, 0xFC, 0x01 });
+                _socket.Write(new byte[] {0xFF, 0xFB, 0x18});
+                _socket.Write(new byte[] {0xFF, 0xFA, 0x18, 0x00, 0x61, 0x69, 0x78, 0x74, 0x65, 0x72, 0x6D, 0xFF, 0xF0});
+                _socket.Write(new byte[] {0xFF, 0xFD, 0x01});
+                _socket.Write(new byte[] {0xFF, 0xFD, 0x03, 0xFF, 0xFC, 0x1F, 0xFF, 0xFC, 0x01});
             }
             catch (Exception ex)
             {
@@ -212,21 +207,21 @@ namespace Symitar
                     _socket.WaitFor("[c");
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                var e = ex;
+                Exception e = ex;
                 return false;
             }
-            
+
             return true;
         }
 
         private bool SymLogin(int symDir, string userPassword)
         {
             _socket.Write("WINDOWSLEVEL=3\r");
-            var match = _socket.WaitFor("$ ", "SymStart~Global");
-            
-            if(match == 0)
+            int match = _socket.WaitFor("$ ", "SymStart~Global");
+
+            if (match == 0)
                 _socket.Write(String.Format("sym {0}\r", symDir));
 
             ISymCommand cmd = _socket.ReadCommand();
@@ -245,7 +240,7 @@ namespace Symitar
                     _error = "Too Many Invalid Password Attempts";
                     return false;
                 }
-                
+
                 if (cmd.Command == "SymLogonInvalidUser")
                 {
                     _error = "Invalid Sym User";
@@ -255,10 +250,10 @@ namespace Symitar
             }
 
             _socket.Write(String.Format("{0}\r", userPassword));
-            
+
             _socket.Write("\r");
             _socket.Write("\r");
-            
+
             _socket.Read();
 
             return true;

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using FluentAssertions;
 using NUnit.Framework;
 using Rhino.Mocks;
@@ -18,9 +14,9 @@ namespace Symitar.Tests
         {
             var mockSocket = MockRepository.GenerateMock<ISymSocket>();
             mockSocket.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("FileList", new Dictionary<string, string> { { "Done", "" } }));
+                      .Return(new SymCommand("FileList", new Dictionary<string, string> {{"Done", ""}}));
 
-            SymSession session = new SymSession(mockSocket, 10);
+            var session = new SymSession(mockSocket, 10);
 
             int result = session.GetFileMaintenanceSequence("Report Title");
             result.Should().Be(-1);

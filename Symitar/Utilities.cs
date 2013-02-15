@@ -1,18 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
 namespace Symitar
 {
     public static class Utilities
     {
-        private static readonly string[] FileTypeDescriptor = { "RepWriter", "Letter", "Help", "Report" };
-        private static readonly string[] FileFolder = { "REPWRITERSPECS", "LETTERSPECS", "HELPFILES", "REPORTS" };
+        private static readonly string[] FileTypeDescriptor = {"RepWriter", "Letter", "Help", "Report"};
+        private static readonly string[] FileFolder = {"REPWRITERSPECS", "LETTERSPECS", "HELPFILES", "REPORTS"};
 
         public static DateTime ParseSystemTime(string date, string time)
         {
-            if(string.IsNullOrEmpty(date))
+            if (string.IsNullOrEmpty(date))
                 throw new ArgumentNullException("date", "Date cannot be blank.");
 
             int day, month, year, hour, minutes;
@@ -46,12 +44,12 @@ namespace Symitar
                 hour,
                 minutes,
                 0
-            );
+                );
         }
 
         public static string FileTypeString(FileType type)
         {
-            return FileTypeDescriptor[(int)type];
+            return FileTypeDescriptor[(int) type];
         }
 
         public static string ContainingFolder(int sym, FileType type)
@@ -64,11 +62,11 @@ namespace Symitar
 
         public static string ContainingFolder(string sym, FileType type)
         {
-            if(string.IsNullOrEmpty(sym)) throw new ArgumentNullException("sym");
-            if(sym.Length > 3) throw new ArgumentOutOfRangeException("sym");
+            if (string.IsNullOrEmpty(sym)) throw new ArgumentNullException("sym");
+            if (sym.Length > 3) throw new ArgumentOutOfRangeException("sym");
 
             sym = sym.PadLeft(3, '0');
-            return String.Format("/SYM/SYM{0}/{1}", sym, FileFolder[(int)type]);
+            return String.Format("/SYM/SYM{0}/{1}", sym, FileFolder[(int) type]);
         }
 
         public static string DecodeString(byte[] bytes)

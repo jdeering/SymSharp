@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using Symitar.Interfaces;
 
@@ -9,19 +8,19 @@ namespace Symitar
 {
     public partial class SymSession
     {
-        public bool FileExists(Symitar.File file)
+        public bool FileExists(File file)
         {
             return (FileList(file.Name, file.Type).Count > 0);
         }
 
-        public bool FileExists(string filename, Symitar.FileType type)
+        public bool FileExists(string filename, FileType type)
         {
             return (FileList(filename, type).Count > 0);
         }
 
-        public List<Symitar.File> FileList(string pattern, Symitar.FileType type)
+        public List<File> FileList(string pattern, FileType type)
         {
-            List<Symitar.File> files = new List<Symitar.File>();
+            var files = new List<File>();
 
             ISymCommand cmd = new SymCommand("File");
             cmd.Set("Type", Utilities.FileTypeString(type));
@@ -36,9 +35,9 @@ namespace Symitar
                     break;
                 if (cmd.HasParameter("Name"))
                 {
-                    files.Add(new Symitar.File(_socket.Server, SymDirectory.ToString(), cmd.Get("Name"), type,
-                                               cmd.Get("Date"), cmd.Get("Time"),
-                                               int.Parse(cmd.Get("Size"))));
+                    files.Add(new File(_socket.Server, SymDirectory.ToString(), cmd.Get("Name"), type,
+                                       cmd.Get("Date"), cmd.Get("Time"),
+                                       int.Parse(cmd.Get("Size"))));
                 }
                 if (cmd.HasParameter("Done"))
                     break;
@@ -46,20 +45,20 @@ namespace Symitar
             return files;
         }
 
-        public Symitar.File FileGet(string filename, Symitar.FileType type)
+        public File FileGet(string filename, FileType type)
         {
-            List<Symitar.File> files = FileList(filename, type);
+            List<File> files = FileList(filename, type);
             if (files.Count < 1)
                 throw new FileNotFoundException();
             return files[0];
         }
 
-        public void FileRename(Symitar.File file, string newName)
+        public void FileRename(File file, string newName)
         {
             FileRename(file.Name, newName, file.Type);
         }
 
-        public void FileRename(string oldName, string newName, Symitar.FileType type)
+        public void FileRename(string oldName, string newName, FileType type)
         {
             ISymCommand cmd = new SymCommand("File");
             cmd.Set("Action", "Rename");
@@ -83,12 +82,12 @@ namespace Symitar
             throw new Exception("Unknown Renaming Error");
         }
 
-        public void FileDelete(Symitar.File file)
+        public void FileDelete(File file)
         {
             FileDelete(file.Name, file.Type);
         }
 
-        public void FileDelete(string name, Symitar.FileType type)
+        public void FileDelete(string name, FileType type)
         {
             ISymCommand cmd = new SymCommand("File");
             cmd.Set("Action", "Delete");
@@ -110,14 +109,14 @@ namespace Symitar
             throw new Exception("Unknown Deletion Error");
         }
 
-        public string FileRead(Symitar.File file)
+        public string FileRead(File file)
         {
             return FileRead(file.Name, file.Type);
         }
 
-        public string FileRead(string name, Symitar.FileType type)
+        public string FileRead(string name, FileType type)
         {
-            StringBuilder content = new StringBuilder();
+            var content = new StringBuilder();
 
             ISymCommand cmd = new SymCommand("File");
             cmd.Set("Action", "Retrieve");
@@ -145,7 +144,7 @@ namespace Symitar
                 if (!string.IsNullOrEmpty(chunk))
                 {
                     content.Append(chunk);
-                    if (type == Symitar.FileType.Report)
+                    if (type == FileType.Report)
                         content.Append('\n');
                 }
 
@@ -154,12 +153,12 @@ namespace Symitar
             return content.ToString();
         }
 
-        public void FileWrite(Symitar.File file, string content)
+        public void FileWrite(File file, string content)
         {
             FileWrite(file.Name, file.Type, content);
         }
 
-        public void FileWrite(string name, Symitar.FileType type, string content)
+        public void FileWrite(string name, FileType type, string content)
         {
             int chunkMax = 1024; // 1 MB max file size by default
 
@@ -183,7 +182,7 @@ namespace Symitar
             if (cmd.Data.Contains("MaxBuff"))
                 chunkMax = int.Parse(cmd.Get("MaxBuff"));
 
-            if (content.Length > (999 * chunkMax))
+            if (content.Length > (999*chunkMax))
                 throw new FileLoadException("File too large");
 
             if (cmd.Get("Status").Contains("Filename is too long"))
@@ -205,7 +204,7 @@ namespace Symitar
                 string chunkStr = chunkSize.ToString("D5");
                 blockStr = block.ToString("D3");
 
-                response = new byte[] { 0x4E, 0x4E, 0x4E, 0x4E, 0x4E, 0x4E, 0x4E, 0x4E, 0x4E, 0x4E, 0x4E };
+                response = new byte[] {0x4E, 0x4E, 0x4E, 0x4E, 0x4E, 0x4E, 0x4E, 0x4E, 0x4E, 0x4E, 0x4E};
                 while (response[7] == 0x4E)
                 {
                     _socket.Write("PROT" + blockStr + "DATA" + chunkStr);
@@ -228,18 +227,21 @@ namespace Symitar
         private string SanitizeFileContent(string content, string[] invalidCharacters)
         {
             for (int i = 0; i < invalidCharacters.Length; i++)
-                content = content.Replace(((char)int.Parse(invalidCharacters[i])) + "", "");
+                content = content.Replace(((char) int.Parse(invalidCharacters[i])) + "", "");
 
             return content;
         }
 
-        public SpecfileResult FileCheck(Symitar.File file)
+        public SpecfileResult FileCheck(File file)
         {
-            if (file.Type != Symitar.FileType.RepGen)
+            if (file.Type != FileType.RepGen)
                 throw new Exception("Cannot check a " + file.FileTypeString() + " file");
 
-            _socket.Write("mm3\u001B"); _socket.ReadCommand();
-            _socket.Write("7\r"); _socket.ReadCommand(); _socket.ReadCommand();
+            _socket.Write("mm3\u001B");
+            _socket.ReadCommand();
+            _socket.Write("7\r");
+            _socket.ReadCommand();
+            _socket.ReadCommand();
             _socket.Write(file.Name + '\r');
 
             ISymCommand cmd = _socket.ReadCommand();
@@ -291,7 +293,7 @@ namespace Symitar
             if (file.Type != FileType.RepGen)
                 throw new Exception("Cannot Install a " + file.FileTypeString() + " File");
 
-            _socket.Write("mm3\u001B"); 
+            _socket.Write("mm3\u001B");
             cmd = _socket.ReadCommand();
             LogCommand(cmd);
             _socket.Write("8\r");
@@ -302,7 +304,7 @@ namespace Symitar
             cmd = _socket.ReadCommand();
             LogCommand(cmd);
 
-            var startTime = DateTime.Now;
+            DateTime startTime = DateTime.Now;
             while (!cmd.HasParameter("Action"))
             {
                 if ((DateTime.Now - startTime).TotalSeconds > 15)
@@ -315,7 +317,7 @@ namespace Symitar
                 {
                     throw new FileNotFoundException();
                 }
-                
+
                 if (cmd.Command == "SpecfileData")
                 {
                     _socket.Write("1\r");

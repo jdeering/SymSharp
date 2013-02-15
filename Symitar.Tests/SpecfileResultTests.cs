@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using NUnit.Framework;
 using FluentAssertions;
+using NUnit.Framework;
 
 namespace Symitar.Tests
 {
@@ -12,10 +8,10 @@ namespace Symitar.Tests
     public class SpecfileResultTests
     {
         [Test]
-        public void SpecfileError_Success_PassesCheck()
+        public void SpecfileError_SuccessWithInstallSizeEqual0_FailsCheck()
         {
-            SpecfileResult result = SpecfileResult.Success();
-            result.PassedCheck.Should().BeTrue();
+            SpecfileResult result = SpecfileResult.Success(0);
+            result.PassedCheck.Should().BeFalse();
         }
 
         [Test]
@@ -26,6 +22,14 @@ namespace Symitar.Tests
         }
 
         [Test]
+        public void SpecfileError_SuccessWithInstallSizeUnder0_ThrowsException()
+        {
+            Assert.Throws<ArgumentOutOfRangeException>(
+                () => { SpecfileResult result = SpecfileResult.Success(-1); }
+                );
+        }
+
+        [Test]
         public void SpecfileError_SuccessWithInstallSize_HasCorrectInstallSize()
         {
             SpecfileResult result = SpecfileResult.Success(100);
@@ -33,21 +37,10 @@ namespace Symitar.Tests
         }
 
         [Test]
-        public void SpecfileError_SuccessWithInstallSizeEqual0_FailsCheck()
+        public void SpecfileError_Success_PassesCheck()
         {
-            SpecfileResult result = SpecfileResult.Success(0);
-            result.PassedCheck.Should().BeFalse();
-        }
-
-        [Test]
-        public void SpecfileError_SuccessWithInstallSizeUnder0_ThrowsException()
-        {
-            Assert.Throws<ArgumentOutOfRangeException>(
-                () =>
-                {
-                    SpecfileResult result = SpecfileResult.Success(-1);
-                }
-            );
+            SpecfileResult result = SpecfileResult.Success();
+            result.PassedCheck.Should().BeTrue();
         }
     }
 }

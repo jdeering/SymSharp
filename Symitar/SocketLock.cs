@@ -1,16 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Symitar.Interfaces;
 
 namespace Symitar
 {
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    [ExcludeFromCodeCoverage]
     public class SocketLock : ISocketSemaphore
     {
-        private Semaphore _lock;
+        private readonly Semaphore _lock;
 
         public SocketLock()
         {

@@ -5,7 +5,7 @@ namespace Symitar
         RepGen = 0,
         PowerPlus = 0,
         Letter = 1,
-        Help   = 2,
+        Help = 2,
         Report = 3
     }
 }

@@ -1,20 +1,9 @@
 using System;
-using System.Text;
 
 namespace Symitar
 {
     public class File
     {
-        public string Server { get; set; }
-        public string Sym { get; set; }
-        public string Name { get; set; }
-        public DateTime TimeStamp { get; set; }
-        public int Size { get; set; }
-        public FileType Type { get; set; }
-        public int Sequence { get; set; }
-        public string Title { get; set; }
-        public int PageCount { get; set; }
-
         public File()
         {
             Server = Sym = Name = "";
@@ -42,6 +31,16 @@ namespace Symitar
             Size = fileSize;
             Type = fileType;
         }
+
+        public string Server { get; set; }
+        public string Sym { get; set; }
+        public string Name { get; set; }
+        public DateTime TimeStamp { get; set; }
+        public int Size { get; set; }
+        public FileType Type { get; set; }
+        public int Sequence { get; set; }
+        public string Title { get; set; }
+        public int PageCount { get; set; }
 
         public string FileTypeString()
         {
