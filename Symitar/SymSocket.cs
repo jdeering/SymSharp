@@ -23,7 +23,8 @@ namespace Symitar
         private DateTime _lastActivity;
         private bool _keepAliveActive;
 
-        private Queue<ISymCommand> _commands;
+        private int _commandIndex;
+        private List<ISymCommand> _commands;
 
         public string Server { get; set; }
         public int Port { get; set; }
@@ -77,7 +78,8 @@ namespace Symitar
         private void Initialize(ITcpAdapter tcpClient = null)
         {
             _data = "";
-            _commands = new Queue<ISymCommand>();
+            _commandIndex = -1;
+            _commands = new List<ISymCommand>();
             _client = tcpClient;
             _keepAliveThread = null;
             _keepAliveActive = false;
@@ -91,7 +93,8 @@ namespace Symitar
         private void Initialize(ITcpAdapter tcpClient, ISocketSemaphore semaphore)
         {
             _data = "";
-            _commands = new Queue<ISymCommand>();
+            _commandIndex = -1;
+            _commands = new List<ISymCommand>();
             _client = tcpClient;
             _keepAliveThread = null;
             _keepAliveActive = false;
@@ -194,48 +197,44 @@ namespace Symitar
 
         public string Read()
         {
-            return Encoding.ASCII.GetString(_client.Read());
+            var data = new List<byte>();
+            while (true)
+            {
+                var newData = _client.Read();
+                if (newData.Length == 0) 
+                    return Encoding.ASCII.GetString(data.ToArray());
+                data.AddRange(newData);
+            }
+        }
+
+        public void Clear()
+        {
+            _commands.RemoveRange(0, _commandIndex + 1);
+            _commandIndex = -1;
         }
 
         public ISymCommand ReadCommand()
         {
             _data += Read();
+
             if (!string.IsNullOrEmpty(_data))
             {
                 var commandStart = Encoding.ASCII.GetString(new byte[] {0x1b, 0xfe});
                 var commandEnd = Encoding.ASCII.GetString(new byte[] {0xfc});
 
-                int start = _data.IndexOf(commandStart);
-                while (start >= 0)
+                int start = _data.IndexOf(commandStart, System.StringComparison.Ordinal);
+                var end = _data.IndexOf(commandEnd, start + commandStart.Length, System.StringComparison.Ordinal);
+                while (start >= 0 && end >= start + commandStart.Length)
                 {
-                    string commandString;
-                    var end = _data.IndexOf(commandEnd, start + commandStart.Length);
-
-                    if (end - start - commandStart.Length <= 0) // No data to parse
-                    {
-                        var newData = Read();
-                        _data += newData;
-                        if (newData.Length == 0)
-                        {
-                            commandString = _data.Substring(start + commandStart.Length);
-                        }
-                        else
-                        {
-                            start = _data.IndexOf(commandStart);
-                            continue;
-                        }
-                    }
-                    else
-                    {
-                        commandString = _data.Substring(start + commandStart.Length, end - start - commandStart.Length);
-                    }
-
+                    var commandLength = end - start - commandStart.Length;
+                    
+                    string commandString = _data.Substring(start + commandStart.Length, commandLength);
                     var newCommand = SymCommand.Parse(commandString);
                     _data = _data.Substring(start + commandStart.Length + commandString.Length);
-
+                    var dataLength = _data.Length;
                     if (newCommand.Command == "File")
                     {
-                        var nextStart = _data.IndexOf(commandStart);
+                        var nextStart = _data.IndexOf(commandStart, System.StringComparison.Ordinal);
                         if (nextStart > 2)
                         {
                             newCommand.Data = _data.Substring(0, nextStart - 2);
@@ -243,17 +242,24 @@ namespace Symitar
                         }
                     }
 
-                    _commands.Enqueue(newCommand);
-                    
-                    start = _data.IndexOf(commandStart);
+                    _commands.Add(newCommand);
+
+                    start = _data.IndexOf(commandStart, System.StringComparison.Ordinal);
+                    end = _data.IndexOf(commandEnd, start + commandStart.Length, System.StringComparison.Ordinal);
                 }
+            }
+
+            if (_commandIndex + 1 == _commands.Count)
+            {
+                _commands.Clear();
+                _commandIndex = -1;
             }
 
             if (_commands.Count == 0) return SymCommand.Parse("");
 
-            var cmd = _commands.Dequeue();
+            var cmd = _commands[++_commandIndex];
             if ((cmd.Command == "MsgDlg") && (cmd.HasParameter("Text")))
-                if (cmd.Get("Text").IndexOf("From PID") != -1)
+                if (cmd.Get("Text").IndexOf("From PID", System.StringComparison.Ordinal) != -1)
                     cmd = ReadCommand();
             return cmd;
         }

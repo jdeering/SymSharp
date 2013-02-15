@@ -29,5 +29,6 @@ namespace Symitar.Interfaces
         ISymCommand ReadCommand();
 
         int WaitFor(params string[] matchers);
+        void Clear();
     }
 }

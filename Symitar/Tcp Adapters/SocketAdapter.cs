@@ -35,8 +35,8 @@ namespace Symitar
         {
             _address = server;
             _port = port;
-            _workingData = new List<byte>(256);
-            _buffer = new byte[256];
+            _workingData = new List<byte>(2048);
+            _buffer = new byte[2048];
 
             var ipHost = Dns.GetHostEntry(_address);
             var primaryAddress = ipHost.AddressList[0];
@@ -77,7 +77,7 @@ namespace Symitar
                 //if (workingData.IndexOf("[c") != -1) Negotiate(1);
                 //if (workingData.IndexOf("[6n") != -1) Negotiate(2);
                 _lock.WaitOne(500);
-                _workingData.AddRange(_buffer);
+                _workingData.AddRange(Encoding.ASCII.GetBytes(workingData));
                 _lock.Release();
                 // Launch another callback to listen for data
                 var recieveData = new AsyncCallback(OnRecievedData);

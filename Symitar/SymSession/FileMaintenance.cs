@@ -29,55 +29,55 @@ namespace Symitar
             string outTitle = "FM - " + new Random().Next(8388608).ToString("D7");
 
             _socket.Write("mm0\u001B");
-            cmd = _socket.ReadCommand(); WaitForInput(cmd);
+            cmd = WaitForCommand("Input");
 
             callStatus(2, "Writing Commands...");
             _socket.Write("1\r");
-            cmd = _socket.ReadCommand(); WaitForInput(cmd);
+            cmd = WaitForCommand("Input");
 
             _socket.Write("24\r"); //Misc. Processing
-            cmd = _socket.ReadCommand(); WaitForInput(cmd);
+            cmd = WaitForCommand("Input");
 
             _socket.Write("5\r"); //Batch FM
-            cmd = _socket.ReadCommand(); WaitForInput(cmd);
+            cmd = WaitForCommand("Input");
 
             _socket.Write(((int)fmtype).ToString() + "\r"); //FM File Type
-            cmd = _socket.ReadCommand(); WaitForInput(cmd);
+            cmd = WaitForCommand("Input");
 
             _socket.Write("0\r"); //Undo a Posting? (NO)
-            cmd = _socket.ReadCommand(); WaitForInput(cmd);
+            cmd = WaitForCommand("Input");
 
             _socket.Write(inpTitle + "\r"); //Title of Batch Report Output to Use as FM Script
-            cmd = _socket.ReadCommand(); WaitForInput(cmd);
+            cmd = WaitForCommand("Input");
 
             _socket.Write("1\r"); //Number of Search Days? (1)
-            cmd = _socket.ReadCommand(); WaitForInput(cmd);
+            cmd = WaitForCommand("Input");
 
             if (fmtype == FileMaintenanceType.Account)
             {
                 _socket.Write("1\r"); //Record FM History (YES)
-                cmd = _socket.ReadCommand(); WaitForInput(cmd);
+                cmd = WaitForCommand("Input");
             }
 
             _socket.Write(outTitle + "\r"); //Name of Posting (needed to lookup later)
-            cmd = _socket.ReadCommand(); WaitForInput(cmd);
+            cmd = WaitForCommand("Input");
 
             _socket.Write("1\r"); //Produce Empty Report If No Exceptions? (YES)
-            cmd = _socket.ReadCommand(); WaitForInput(cmd);
+            cmd = WaitForCommand("Input");
 
             _socket.Write("0\r"); //Batch Options? (NO)
 
             if (queue < 0)
             {
-                queue = GetQueue(callStatus);
+                queue = GetOpenQueue(null, callStatus);
             }
 
             callStatus(7, "Writing Final Commands");
             _socket.Write(queue.ToString() + "\r"); //write queue
-            cmd = _socket.ReadCommand(); WaitForInput(cmd);
+            cmd = WaitForCommand("Input");
 
             _socket.Write("1\r"); //Okay (to Proceed)? (YES)
-            cmd = _socket.ReadCommand(); WaitForInput(cmd);
+            cmd = WaitForCommand("Input");
 
             //get queues again
             callStatus(8, "Finding FM Sequence");
@@ -115,45 +115,40 @@ namespace Symitar
             return new ReportInfo(sequenceNo, outTitle);
         }
 
-        private void WaitForInput(ISymCommand cmd)
+        private ISymCommand WaitForCommand(string command)
         {
-            while (cmd.Command != "Input") 
-                cmd = _socket.ReadCommand();
+            while (true)
+            {
+                var cmd = _socket.ReadCommand();
+                if (cmd.Command == command)
+                {
+                    _socket.Clear();
+                    return cmd;
+                }
+            }
         }
 
-        private int GetQueue(FileRunStatus callStatus)
+        private ISymCommand WaitForPrompt(string prompt)
+        {
+            while (true)
+            {
+                var cmd = _socket.ReadCommand();
+                if (cmd.Get("Prompt").Contains(prompt))
+                {
+                    _socket.Clear();
+                    return cmd;
+                }
+            }
+        }
+
+        private int GetOpenQueue(Dictionary<int, int> availableQueues, FileRunStatus callStatus)
         {
             int queue;
-            ISymCommand cmd;
-            //get queues
+            ISymCommand cmd = new SymCommand();
 
-            callStatus(4, "Getting Queue List");
-            cmd = _socket.ReadCommand();
-            Dictionary<int, int> queAvailable = new Dictionary<int, int>();
-            while (cmd.Command != "Input")
-            {
-                if ((cmd.Get("Action") == "DisplayLine") && (cmd.Get("Text").Contains("Batch Queues Available:")))
-                {
-                    string line = cmd.Get("Text");
-                    string[] strQueues = line.Substring(line.IndexOf(':') + 1).Split(new char[] {','});
-                    for (int i = 0; i < strQueues.Length; i++)
-                    {
-                        strQueues[i] = strQueues[i].Trim();
-                        if (strQueues[i].Contains("-"))
-                        {
-                            int pos = strQueues[i].IndexOf('-');
-                            int start = int.Parse(strQueues[i].Substring(0, pos));
-                            int end = int.Parse(strQueues[i].Substring(pos + 1));
-                            for (int c = start; c <= end; c++)
-                                queAvailable.Add(c, 0);
-                        }
-                        else
-                            queAvailable.Add(int.Parse(strQueues[i]), 0);
-                    }
-                }
-                cmd = _socket.ReadCommand();
-            }
-
+            if (availableQueues == null || availableQueues.Count == 0)
+                availableQueues = GetQueueList(cmd);
+            
             //get queue counts
             callStatus(5, "Getting Queue Counts");
             cmd = new SymCommand("Misc");
@@ -164,14 +159,14 @@ namespace Symitar
             while (!cmd.HasParameter("Done"))
             {
                 if ((cmd.Get("Action") == "QueueEntry") && (cmd.Get("Stat") == "Running"))
-                    queAvailable[int.Parse(cmd.Get("Queue"))]++;
+                    availableQueues[int.Parse(cmd.Get("Queue"))]++;
                 cmd = _socket.ReadCommand();
             }
 
             // Get queue with lowest pending
             int lowestPending = 0;
             queue = 0;
-            foreach (KeyValuePair<int, int> Q in queAvailable)
+            foreach (KeyValuePair<int, int> Q in availableQueues)
             {
                 if (Q.Value == 0) return Q.Key;
 
@@ -183,6 +178,34 @@ namespace Symitar
             }
 
             return queue;
+        }
+
+        private Dictionary<int, int> GetQueueList(ISymCommand cmd)
+        {
+            var availableQueues = new Dictionary<int, int>();
+
+            while (!(cmd.Get("Action") == "DisplayLine" && cmd.Get("Text").Contains("Batch Queues Available:")))
+            {
+                cmd = _socket.ReadCommand();
+            }
+            string line = cmd.Get("Text");
+            string[] strQueues = line.Substring(line.IndexOf(':') + 1).Split(new char[] { ',' });
+            for (int i = 0; i < strQueues.Length; i++)
+            {
+                strQueues[i] = strQueues[i].Trim();
+                if (strQueues[i].Contains("-"))
+                {
+                    int pos = strQueues[i].IndexOf('-');
+                    int start = int.Parse(strQueues[i].Substring(0, pos));
+                    int end = int.Parse(strQueues[i].Substring(pos + 1));
+                    for (int c = start; c <= end; c++)
+                        availableQueues.Add(c, 0);
+                }
+                else
+                    availableQueues.Add(int.Parse(strQueues[i]), 0);
+            }
+
+            return availableQueues;
         }
     }
 }

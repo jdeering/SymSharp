@@ -13,28 +13,6 @@ namespace Symitar.Console
             InitializeComponent();
         }
 
-        private void UpdateTextBox()
-        {
-            while (true)
-            {
-                if (_socket != null && _socket.Connected)
-                {
-                    string msg;
-                    var cmd = _socket.ReadCommand();
-
-                    msg = cmd.Command == "" ? _socket.Read() : cmd.ToString();
-
-                    if(!string.IsNullOrEmpty(msg))
-                        this.Invoke(() =>
-                            {
-                                responseBox.Text += msg + "\n";
-                                responseBox.SelectionStart = responseBox.Text.Length;
-                                responseBox.ScrollToCaret();
-                            });
-                } 
-            }
-        }
-
         private SymSession _session;
         private SymSocket _socket;
 
@@ -48,19 +26,28 @@ namespace Symitar.Console
 
             _socket = new SymSocket("symitar", 23);
             _session = new SymSession(_socket, 670);
+            Login();
+        }
+
+        private void Login()
+        {
             while (!_session.LoggedIn)
             {
                 _session.Disconnect();
                 _session.Connect("symitar", 23);
                 _session.Login("jdeering", "h3dd0#mon", "083ch#ckb00k");
-            }
 
-            Thread dataThread = new Thread(UpdateTextBox);
-            //dataThread.Start();
+                if (_session.LoggedIn)
+                {
+                    responseBox.Text += @"Logged in";
+                    responseBox.Text += "\n\n";
+                }
+            }
         }
 
         private void sendButton_Click(object sender, EventArgs e)
         {
+            Login();
             var message = messageBox.Text;
             messageBox.Text = "";
 
@@ -72,10 +59,23 @@ namespace Symitar.Console
         private void RunReportTest(string fileName)
         {
             var file = new File() {Name = fileName, Type = FileType.RepGen};
-            _session.FileRun(file,
-                             (code, description) => responseBox.Text += string.Format("{0}: {1}", code, description),
-                             prompt => { return ""; }, 
+            var result = _session.FileRun(file,
+                             (code, description) => responseBox.Text += string.Format("{0}: {1}\n", code, description),
+                             prompt => "", 
                              3);
+
+            var waiter = new BackgroundWorker();
+            waiter.DoWork += (sender, args) =>
+                {
+                    int sequence = -1;
+                    while (sequence < 0)
+                    {
+                        sequence = _session.GetReportSequence(file.Name, result.RunTime);
+                        Thread.Sleep(60000); // Wait 1 minute
+                    }
+                    responseBox.Text += String.Format("Report Generator Complete: {0}", sequence);
+                };
+            waiter.RunWorkerAsync();
         }
 
         private void FileReadTest(string fileName, FileType fileType)

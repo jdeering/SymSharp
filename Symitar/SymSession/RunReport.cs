@@ -96,33 +96,27 @@ namespace Symitar
             callStatus(0, "Initializing...");
 
             _socket.Write("mm0\u001B");
-            cmd = _socket.ReadCommand();
-            while (cmd.Command != "Input")
-                cmd = _socket.ReadCommand();
+
             callStatus(1, "Writing Commands...");
-
+            WaitForCommand("Input");
             _socket.Write("1\r");
-            cmd = _socket.ReadCommand();
-            while (cmd.Command != "Input")
-                cmd = _socket.ReadCommand();
+
             callStatus(2, "Writing Commands...");
-
+            WaitForCommand("Input");
             _socket.Write("11\r");
-            cmd = _socket.ReadCommand();
-            while (cmd.Command != "Input")
-                cmd = _socket.ReadCommand();
-            callStatus(3, "Writing Commands...");
 
+            callStatus(3, "Writing Commands...");
+            WaitForPrompt("Specification File");
             _socket.Write(file.Name + "\r");
             bool erroredOut = false;
             while (true)
             {
                 cmd = _socket.ReadCommand();
 
-                if ((cmd.Command == "Input") && (cmd.Get("HelpCode") == "20301"))
-                    break;
                 if (cmd.Command == "Input")
                 {
+                    if (cmd.Get("HelpCode") == "20301") break;
+
                     callStatus(4, "Please Enter Prompts");
 
                     string result = callPrompt(cmd.Get("Prompt"));
@@ -134,8 +128,8 @@ namespace Symitar
                             cmd = _socket.ReadCommand();
                         return RepgenRunResult.Cancelled();
                     }
-                    else
-                        _socket.Write(result.Trim() + '\r');
+
+                    _socket.Write(result.Trim() + '\r');
                 }
                 else if (cmd.Command == "Bell")
                     callStatus(4, "Invalid Prompt Input, Please Re-Enter");
@@ -160,20 +154,25 @@ namespace Symitar
                     callStatus(5, cmd.Get("Text"));
             }
 
-            _socket.Write("\r");
-            cmd = _socket.ReadCommand();
-            while (cmd.Command != "Input")
+            while (cmd.Get("Prompt").Contains("Specification File"))
+            {
+                _socket.Write("\r");
                 cmd = _socket.ReadCommand();
+            }
 
+            WaitForPrompt("Batch Options");
             _socket.Write("0\r");
 
+            callStatus(4, "Getting Queue List");
+            var availableQueues = GetQueueList(cmd);
+            
             if (queue < 0)
-                queue = GetQueue(callStatus);
+                queue = GetOpenQueue(availableQueues, callStatus);
 
+            WaitForPrompt("Batch Queue");
             _socket.Write(queue + "\r");
-            cmd = _socket.ReadCommand();
-            while (cmd.Command != "Input")
-                cmd = _socket.ReadCommand();
+
+            WaitForCommand("Input");
 
             callStatus(8, "Getting Sequence Numbers");
             _socket.Write("1\r");
