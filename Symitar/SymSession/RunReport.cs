@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Symitar.Interfaces;
 
 namespace Symitar
@@ -72,8 +73,9 @@ namespace Symitar
             return seqs;
         }
 
-        public int GetReportSequence(string reportName, int time)
+        public int GetBatchOutputSequence(string reportName, int time)
         {
+            Reconnect();
             List<int> seqs = GetPrintSequences("REPWRITER");
             foreach (int i in seqs)
             {
@@ -99,6 +101,18 @@ namespace Symitar
                 }
             }
             return -1;
+        }
+
+        public IEnumerable<int> GetReportSequences(int batchOutputSequence)
+        {
+            var file = new File(_socket.Server, SymDirectory.ToString(), batchOutputSequence.ToString(), FileType.Report, DateTime.Now,
+                                0);
+            var lines = FileRead(file).Split('\n');
+
+            var sequences = (from line in lines where line.Contains("Seq:") && line.Contains("Title:") select int.Parse(line.Substring(7, 6))).ToList();
+
+            sequences.Sort();
+            return sequences;
         }
 
         public RepgenRunResult FileRun(File file, FileRunStatus callStatus, FileRunPrompt callPrompt, int queue)

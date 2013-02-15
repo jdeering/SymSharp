@@ -53,8 +53,25 @@ namespace Symitar.Console
             messageBox.Text = "";
 
             //FileInstallTest(message);
+
             //FileReadTest(message, FileType.RepGen);
+
+            //var filename = message.Split(',')[0];
+            //var runtime = message.Split(',')[1];
+            //GetSequenceTest(filename, runtime);
+
             RunReportTest(message);
+        }
+
+        private void GetSequenceTest(params string[] args)
+        {
+            var sequence = _session.GetBatchOutputSequence(args[0], int.Parse(args[1]));
+
+            responseBox.Text += String.Format("Batch output found at sequence {0}\n", sequence);
+            foreach (var seq in _session.GetReportSequences(sequence))
+            {
+                responseBox.Text += String.Format("\tGenerated Report Seq: {0}\n", seq);
+            }
         }
 
         private void RunReportTest(string fileName)
@@ -78,10 +95,19 @@ namespace Symitar.Console
             {
                 Thread.Sleep(60000);
             }
+
+            var sequence = _session.GetBatchOutputSequence(args[0], int.Parse(args[2]));
             this.Invoke(
                 () =>
-                responseBox.Text +=
-                String.Format("Report completed: {0}", _session.GetReportSequence(args[0], int.Parse(args[2]))));
+                {
+                    responseBox.Text += "Report completed: " + args[0] + "\n";
+                    responseBox.Text += String.Format("\tBatch output found at sequence {0}\n", sequence);
+                    foreach (var seq in _session.GetReportSequences(sequence))
+                    {
+                        responseBox.Text += String.Format("\t\tGenerated Report Seq: {0}\n", seq);
+                    }
+                });
+
         }
 
         private void FileReadTest(string fileName, FileType fileType)
