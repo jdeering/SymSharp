@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Symitar.Interfaces;
 
 namespace Symitar
@@ -13,7 +11,8 @@ namespace Symitar
             List<int> seqs = GetPrintSequences("MISCFMPOST");
             foreach (int i in seqs)
             {
-                Symitar.File file = new Symitar.File(_socket.Server, SymDirectory.ToString(), i.ToString(), Symitar.FileType.Report, DateTime.Now, 0);
+                var file = new File(_socket.Server, SymDirectory.ToString(), i.ToString(), FileType.Report, DateTime.Now,
+                                    0);
                 string contents = FileRead(file);
                 contents = contents.Substring(contents.IndexOf("Name of Posting: ") + 17);
                 if (contents.StartsWith(title))
@@ -41,7 +40,7 @@ namespace Symitar
             _socket.Write("5\r"); //Batch FM
             cmd = WaitForCommand("Input");
 
-            _socket.Write(((int)fmtype).ToString() + "\r"); //FM File Type
+            _socket.Write(((int) fmtype).ToString() + "\r"); //FM File Type
             cmd = WaitForCommand("Input");
 
             _socket.Write("0\r"); //Undo a Posting? (NO)
@@ -99,8 +98,8 @@ namespace Symitar
                     string seconds = tokens[2], minutes = tokens[1], hours = tokens[0];
 
                     currTime = int.Parse(seconds);
-                    currTime += 60 * int.Parse(minutes);
-                    currTime += 3600 * int.Parse(hours);
+                    currTime += 60*int.Parse(minutes);
+                    currTime += 3600*int.Parse(hours);
 
                     if (currTime >= newestTime)
                     {
@@ -119,7 +118,7 @@ namespace Symitar
         {
             while (true)
             {
-                var cmd = _socket.ReadCommand();
+                ISymCommand cmd = _socket.ReadCommand();
                 if (cmd.Command == command)
                 {
                     _socket.Clear();
@@ -132,7 +131,7 @@ namespace Symitar
         {
             while (true)
             {
-                var cmd = _socket.ReadCommand();
+                ISymCommand cmd = _socket.ReadCommand();
                 if (cmd.Get("Prompt").Contains(prompt))
                 {
                     _socket.Clear();
@@ -148,7 +147,7 @@ namespace Symitar
 
             if (availableQueues == null || availableQueues.Count == 0)
                 availableQueues = GetQueueList(cmd);
-            
+
             //get queue counts
             callStatus(5, "Getting Queue Counts");
             cmd = new SymCommand("Misc");
@@ -166,7 +165,7 @@ namespace Symitar
             // Get queue with lowest pending
             int lowestPending = 0;
             queue = 0;
-            foreach (KeyValuePair<int, int> Q in availableQueues)
+            foreach (var Q in availableQueues)
             {
                 if (Q.Value == 0) return Q.Key;
 
@@ -189,7 +188,7 @@ namespace Symitar
                 cmd = _socket.ReadCommand();
             }
             string line = cmd.Get("Text");
-            string[] strQueues = line.Substring(line.IndexOf(':') + 1).Split(new char[] { ',' });
+            string[] strQueues = line.Substring(line.IndexOf(':') + 1).Split(new[] {','});
             for (int i = 0; i < strQueues.Length; i++)
             {
                 strQueues[i] = strQueues[i].Trim();

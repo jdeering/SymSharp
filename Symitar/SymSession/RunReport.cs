@@ -1,19 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Symitar.Interfaces;
 
 namespace Symitar
 {
     public partial class SymSession
     {
-        public delegate void FileRunStatus(int code, string description);
         public delegate string FileRunPrompt(string prompt);
+
+        public delegate void FileRunStatus(int code, string description);
 
         public bool IsFileRunning(int sequence)
         {
-            if(sequence <= 0)
+            if (sequence <= 0)
                 throw new ArgumentOutOfRangeException("sequence");
 
             ISymCommand cmd;
@@ -50,7 +49,7 @@ namespace Symitar
 
         private List<int> GetPrintSequences(string searchTerm)
         {
-            List<int> seqs = new List<int>();
+            var seqs = new List<int>();
             ISymCommand cmd;
 
             cmd = new SymCommand("File");
@@ -78,7 +77,8 @@ namespace Symitar
             List<int> seqs = GetPrintSequences("REPWRITER");
             foreach (int i in seqs)
             {
-                Symitar.File file = new Symitar.File(_socket.Server, SymDirectory.ToString(), i.ToString(), Symitar.FileType.Report, DateTime.Now, 0);
+                var file = new File(_socket.Server, SymDirectory.ToString(), i.ToString(), FileType.Report, DateTime.Now,
+                                    0);
                 string contents = FileRead(file);
                 int beganIndex = contents.IndexOf("Processing begun on");
                 if (beganIndex != -1)
@@ -89,8 +89,8 @@ namespace Symitar
                     string seconds = tokens[2], minutes = tokens[1], hours = tokens[0];
 
                     int currTime = int.Parse(seconds);
-                    currTime += 60 * int.Parse(minutes);
-                    currTime += 3600 * int.Parse(hours);
+                    currTime += 60*int.Parse(minutes);
+                    currTime += 3600*int.Parse(hours);
                     contents = contents.Substring(contents.IndexOf("(newline when done):") + 21);
 
                     string name = contents.Substring(0, contents.IndexOf('\n'));
@@ -101,9 +101,9 @@ namespace Symitar
             return -1;
         }
 
-        public RepgenRunResult FileRun(Symitar.File file, FileRunStatus callStatus, FileRunPrompt callPrompt, int queue)
+        public RepgenRunResult FileRun(File file, FileRunStatus callStatus, FileRunPrompt callPrompt, int queue)
         {
-            if (file.Type != Symitar.FileType.RepGen)
+            if (file.Type != FileType.RepGen)
                 throw new InvalidOperationException("Cannot run a " + file.FileTypeString() + " file");
 
             ISymCommand cmd;
@@ -178,8 +178,8 @@ namespace Symitar
             _socket.Write("0\r");
 
             callStatus(4, "Getting Queue List");
-            var availableQueues = GetQueueList(cmd);
-            
+            Dictionary<int, int> availableQueues = GetQueueList(cmd);
+
             if (queue < 0)
                 queue = GetOpenQueue(availableQueues, callStatus);
 
@@ -208,8 +208,8 @@ namespace Symitar
                     int currTime = 0;
                     string timeStr = cmd.Get("Time");
                     currTime = int.Parse(timeStr.Substring(timeStr.LastIndexOf(':') + 1));
-                    currTime += 60 * int.Parse(timeStr.Substring(timeStr.IndexOf(':') + 1, 2));
-                    currTime += 3600 * int.Parse(timeStr.Substring(0, timeStr.IndexOf(':')));
+                    currTime += 60*int.Parse(timeStr.Substring(timeStr.IndexOf(':') + 1, 2));
+                    currTime += 3600*int.Parse(timeStr.Substring(0, timeStr.IndexOf(':')));
                     if (currTime >= newestTime)
                     {
                         newestTime = currTime;

@@ -8,13 +8,13 @@ namespace Symitar.Console
 {
     public partial class Form1 : Form
     {
+        private SymSession _session;
+        private SymSocket _socket;
+
         public Form1()
         {
             InitializeComponent();
         }
-
-        private SymSession _session;
-        private SymSocket _socket;
 
         private void startButton_Click(object sender, EventArgs e)
         {
@@ -49,7 +49,7 @@ namespace Symitar.Console
         private void sendButton_Click(object sender, EventArgs e)
         {
             Login();
-            var message = messageBox.Text;
+            string message = messageBox.Text;
             messageBox.Text = "";
 
             //FileInstallTest(message);
@@ -59,15 +59,16 @@ namespace Symitar.Console
 
         private void RunReportTest(string fileName)
         {
-            var file = new File() {Name = fileName, Type = FileType.RepGen};
-            var result = _session.FileRun(file,
-                             (code, description) => responseBox.Text += string.Format("{0}: {1}\n", code, description),
-                             prompt => "", 
-                             3);
+            var file = new File {Name = fileName, Type = FileType.RepGen};
+            RepgenRunResult result = _session.FileRun(file,
+                                                      (code, description) =>
+                                                      responseBox.Text += string.Format("{0}: {1}\n", code, description),
+                                                      prompt => "",
+                                                      3);
 
-            Thread waiter = new Thread(WaitForReport);
+            var waiter = new Thread(WaitForReport);
             waiter.Name = "Report Run Waiter";
-            waiter.Start(new string[] { file.Name, result.Sequence.ToString(), result.RunTime.ToString() });
+            waiter.Start(new[] {file.Name, result.Sequence.ToString(), result.RunTime.ToString()});
         }
 
         private void WaitForReport(object a)
@@ -77,12 +78,15 @@ namespace Symitar.Console
             {
                 Thread.Sleep(60000);
             }
-            this.Invoke(() => responseBox.Text += String.Format("Report completed: {0}", _session.GetReportSequence(args[0], int.Parse(args[2]))));
+            this.Invoke(
+                () =>
+                responseBox.Text +=
+                String.Format("Report completed: {0}", _session.GetReportSequence(args[0], int.Parse(args[2]))));
         }
 
         private void FileReadTest(string fileName, FileType fileType)
         {
-            var contents = _session.FileRead(fileName, fileType);
+            string contents = _session.FileRead(fileName, fileType);
 
             LogResponse(contents);
         }
@@ -91,8 +95,8 @@ namespace Symitar.Console
         {
             try
             {
-                var file = new File() { Name = fileName, Type = FileType.RepGen };
-                var result = _session.FileInstall(file);
+                var file = new File {Name = fileName, Type = FileType.RepGen};
+                SpecfileResult result = _session.FileInstall(file);
                 LogResponse(_session.Log.Aggregate((a, b) => a + "\n" + b));
 
                 LogResponse(result.PassedCheck);
