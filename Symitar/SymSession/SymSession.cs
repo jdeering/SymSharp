@@ -8,12 +8,13 @@ namespace Symitar
     {
         private string _error;
         private bool _loggedIn;
-        private string _password;
-        private int _port;
-        private string _server;
+
         private ISymSocket _socket;
-        private string _userId;
+        private string _server;
+        private int _port;
         private string _username;
+        private string _password;
+        private string _userId;
 
         public SymSession()
         {
@@ -83,7 +84,6 @@ namespace Symitar
         {
             if (string.IsNullOrEmpty(server)) throw new ArgumentNullException("server");
             if (port <= 0) throw new ArgumentOutOfRangeException("port");
-
 
             _server = server;
             _port = port;
