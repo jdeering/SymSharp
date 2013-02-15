@@ -28,6 +28,20 @@ namespace Symitar
             {
                 if ((cmd.Get("Action") == "QueueEntry") && (int.Parse(cmd.Get("Seq")) == sequence))
                     running = true;
+                else if (cmd.Get("Action") == "Close")
+                {
+                    Reconnect();
+                    cmd = new SymCommand("Misc");
+                    cmd.Set("InfoType", "BatchQueues");
+                    _socket.Write(cmd);
+                }
+                else if (cmd.Command == "")
+                {
+                    cmd = new SymCommand("Misc");
+                    cmd.Set("InfoType", "BatchQueues");
+                    _socket.Write(cmd);
+                }
+
                 cmd = _socket.ReadCommand();
             }
 

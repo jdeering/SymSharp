@@ -17,6 +17,12 @@ namespace Symitar
             get { return _socket; }
         }
 
+        private string _server;
+        private int _port;
+        private string _username;
+        private string _password;
+        private string _userId;
+
         public int SymDirectory { get; set; }
 
         private string _error;
@@ -83,6 +89,10 @@ namespace Symitar
             if(string.IsNullOrEmpty(server)) throw new ArgumentNullException("server");
             if(port <= 0) throw new ArgumentOutOfRangeException("port");
 
+            
+            _server = server;
+            _port = port;
+
             if (_socket == null)
             {
                 _socket = new SymSocket(server, port);
@@ -98,6 +108,13 @@ namespace Symitar
         {
             if(_socket != null)
                 _socket.Disconnect();
+        }
+
+        private void Reconnect()
+        {
+            Disconnect();
+            Connect(_server, _port);
+            Login(_username, _password, _userId);
         }
 
         public bool Login(string aixUsername, string aixPassword, string symUserId)
@@ -123,6 +140,10 @@ namespace Symitar
             if (directory < 0 || directory > 999) throw new ArgumentOutOfRangeException("directory");
             if (string.IsNullOrEmpty(symUserId)) throw new ArgumentNullException("symUserId");
             if (stage < 0) throw new ArgumentOutOfRangeException("stage");
+            
+            _username = aixUsername;
+            _password = aixPassword;
+            _userId = symUserId;
 
             _error = "";
             SymDirectory = directory;

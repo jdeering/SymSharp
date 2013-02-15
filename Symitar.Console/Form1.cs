@@ -18,6 +18,7 @@ namespace Symitar.Console
 
         private void startButton_Click(object sender, EventArgs e)
         {
+            Thread.CurrentThread.Name = "Main Thread";
             if (_session != null)
             {
                 _socket.Disconnect();
@@ -64,18 +65,19 @@ namespace Symitar.Console
                              prompt => "", 
                              3);
 
-            var waiter = new BackgroundWorker();
-            waiter.DoWork += (sender, args) =>
-                {
-                    int sequence = -1;
-                    while (sequence < 0)
-                    {
-                        sequence = _session.GetReportSequence(file.Name, result.RunTime);
-                        Thread.Sleep(60000); // Wait 1 minute
-                    }
-                    responseBox.Text += String.Format("Report Generator Complete: {0}", sequence);
-                };
-            waiter.RunWorkerAsync();
+            Thread waiter = new Thread(WaitForReport);
+            waiter.Name = "Report Run Waiter";
+            waiter.Start(new string[] { file.Name, result.Sequence.ToString(), result.RunTime.ToString() });
+        }
+
+        private void WaitForReport(object a)
+        {
+            var args = a as string[];
+            while (_session.IsFileRunning(int.Parse(args[1])))
+            {
+                Thread.Sleep(60000);
+            }
+            this.Invoke(() => responseBox.Text += String.Format("Report completed: {0}", _session.GetReportSequence(args[0], int.Parse(args[2]))));
         }
 
         private void FileReadTest(string fileName, FileType fileType)
