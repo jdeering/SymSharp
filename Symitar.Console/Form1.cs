@@ -81,33 +81,17 @@ namespace Symitar.Console
                                                       (code, description) =>
                                                       responseBox.Text += string.Format("{0}: {1}\n", code, description),
                                                       prompt => "",
-                                                      3);
+                                                      3,
+                                                      JobComplete);
 
-            var waiter = new Thread(WaitForReport);
-            waiter.Name = "Report Run Waiter";
-            waiter.Start(new[] {file.Name, result.Sequence.ToString(), result.RunTime.ToString()});
         }
 
-        private void WaitForReport(object a)
+        private void JobComplete(object sender, RunWorkerCompletedEventArgs e)
         {
-            var args = a as string[];
-            while (_session.IsFileRunning(int.Parse(args[1])))
-            {
-                Thread.Sleep(60000);
-            }
-
-            var sequence = _session.GetBatchOutputSequence(args[0], int.Parse(args[2]));
-            this.Invoke(
-                () =>
-                {
-                    responseBox.Text += "Report completed: " + args[0] + "\n";
-                    responseBox.Text += String.Format("\tBatch output found at sequence {0}\n", sequence);
-                    foreach (var seq in _session.GetReportSequences(sequence))
-                    {
-                        responseBox.Text += String.Format("\t\tGenerated Report Seq: {0}\n", seq);
-                    }
-                });
-
+            if (e.Error != null)
+                responseBox.Text += "Job error: " + e.Error.Message + "\n";
+            else
+                responseBox.Text += "Job complete: " + e.Result;
         }
 
         private void FileReadTest(string fileName, FileType fileType)

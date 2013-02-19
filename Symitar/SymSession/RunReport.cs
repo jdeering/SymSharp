@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
+using System.Threading;
 using Symitar.Interfaces;
 
 namespace Symitar
@@ -115,7 +117,7 @@ namespace Symitar
             return sequences;
         }
 
-        public RepgenRunResult FileRun(File file, FileRunStatus callStatus, FileRunPrompt callPrompt, int queue)
+        public RepgenRunResult FileRun(File file, FileRunStatus callStatus, FileRunPrompt callPrompt, int queue, RunWorkerCompletedEventHandler Notify = null)
         {
             if (file.Type != FileType.RepGen)
                 throw new InvalidOperationException("Cannot run a " + file.FileTypeString() + " file");
@@ -234,6 +236,26 @@ namespace Symitar
             }
 
             callStatus(9, "Running..");
+
+            if (Notify != null)
+            {
+                var worker = new BackgroundWorker();
+
+                worker.DoWork += (sender, eventArgs) =>
+                    {
+                        while (IsFileRunning(sequenceNo))
+                        {
+                            Thread.Sleep(15000);
+                        }
+
+                        eventArgs.Result = GetBatchOutputSequence(file.Name, newestTime);
+                    };
+
+                worker.RunWorkerCompleted += Notify;
+
+                worker.RunWorkerAsync();
+            }
+
             return RepgenRunResult.Okay(sequenceNo, newestTime);
         }
     }
