@@ -248,7 +248,11 @@ namespace Symitar
                             Thread.Sleep(15000);
                         }
 
-                        eventArgs.Result = GetBatchOutputSequence(file.Name, newestTime);
+                        object[] result = new object[2];
+                        result[0] = file.Name;
+                        result[1] = GetBatchOutputSequence(file.Name, newestTime);
+
+                        eventArgs.Result = result;
                     };
 
                 worker.RunWorkerCompleted += Notify;
