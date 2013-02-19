@@ -243,6 +243,7 @@ namespace Symitar
 
                 worker.DoWork += (sender, eventArgs) =>
                     {
+                        Thread.Sleep(5000); // Wait 5 seconds before first check
                         while (IsFileRunning(sequenceNo))
                         {
                             Thread.Sleep(15000);
