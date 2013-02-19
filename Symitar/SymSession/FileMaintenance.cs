@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Threading;
 using Symitar.Interfaces;
 
 namespace Symitar
@@ -21,7 +23,7 @@ namespace Symitar
             return -1;
         }
 
-        public ReportInfo FMRun(string inpTitle, FileMaintenanceType fmtype, FileRunStatus callStatus, int queue)
+        public ReportInfo FMRun(string inpTitle, FileMaintenanceType fmtype, FileRunStatus callStatus, int queue, RunWorkerCompletedEventHandler Notify = null)
         {
             callStatus(1, "Initializing...");
             ISymCommand cmd;
@@ -111,6 +113,26 @@ namespace Symitar
             }
 
             callStatus(9, "Running..");
+            
+            if (Notify != null)
+            {
+                var worker = new BackgroundWorker();
+
+                worker.DoWork += (sender, eventArgs) =>
+                {
+                    while (IsFileRunning(sequenceNo))
+                    {
+                        Thread.Sleep(15000);
+                    }
+
+                    eventArgs.Result = GetFileMaintenanceSequence(inpTitle);
+                };
+
+                worker.RunWorkerCompleted += Notify;
+
+                worker.RunWorkerAsync();
+            }
+
             return new ReportInfo(sequenceNo, outTitle);
         }
 
