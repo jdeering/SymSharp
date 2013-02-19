@@ -125,7 +125,7 @@ namespace Symitar
                         Thread.Sleep(15000);
                     }
 
-                    eventArgs.Result = GetFileMaintenanceSequence(inpTitle, newestTime);
+                    eventArgs.Result = GetFileMaintenanceSequence(inpTitle);
                 };
 
                 worker.RunWorkerCompleted += Notify;
