@@ -78,5 +78,53 @@ namespace Symitar
         {
             return Encoding.ASCII.GetBytes(str);
         }
+
+        public static int ConvertTime(string timeStr)
+        {
+            string[] tokens = timeStr.Split(':');
+            string seconds = tokens[2], minutes = tokens[1], hours = tokens[0];
+
+            int currTime = int.Parse(seconds);
+            currTime += 60 * int.Parse(minutes);
+            currTime += 3600 * int.Parse(hours);
+
+            return currTime;
+        }
+
+        public static DateTime ConvertTime(int time)
+        {
+            int hours = 0, minutes = 0, seconds = 0;
+
+            while(time > 3600)
+            {
+                hours++;
+                time -= 3600;
+            }
+
+            while (time > 60)
+            {
+                minutes++;
+                time -= 60;
+            }
+
+            seconds = time;
+
+            return new DateTime(
+                DateTime.Now.Year,
+                DateTime.Now.Month,
+                DateTime.Now.Day,
+                hours,
+                minutes,
+                seconds
+            );
+        }
+
+        public static int ConvertTime(DateTime time)
+        {
+            int currTime = time.Second;
+            currTime += 60 * time.Minute;
+            currTime += 3600 * time.Hour;
+            return currTime;
+        }
     }
 }

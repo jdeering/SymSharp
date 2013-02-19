@@ -91,10 +91,9 @@ namespace Symitar
                     string timeStr = contents.Substring(0, 8);
                     string[] tokens = timeStr.Split(':');
                     string seconds = tokens[2], minutes = tokens[1], hours = tokens[0];
+                    
+                    int currTime = Utilities.ConvertTime(timeStr);
 
-                    int currTime = int.Parse(seconds);
-                    currTime += 60*int.Parse(minutes);
-                    currTime += 3600*int.Parse(hours);
                     contents = contents.Substring(contents.IndexOf("(newline when done):") + 21);
 
                     string name = contents.Substring(0, contents.IndexOf('\n'));
@@ -221,11 +220,8 @@ namespace Symitar
             {
                 if (cmd.Get("Action") == "QueueEntry")
                 {
-                    int currTime = 0;
-                    string timeStr = cmd.Get("Time");
-                    currTime = int.Parse(timeStr.Substring(timeStr.LastIndexOf(':') + 1));
-                    currTime += 60*int.Parse(timeStr.Substring(timeStr.IndexOf(':') + 1, 2));
-                    currTime += 3600*int.Parse(timeStr.Substring(0, timeStr.IndexOf(':')));
+                    int currTime = Utilities.ConvertTime(cmd.Get("Time"));
+
                     if (currTime >= newestTime)
                     {
                         newestTime = currTime;
