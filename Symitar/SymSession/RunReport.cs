@@ -245,9 +245,10 @@ namespace Symitar
                             Thread.Sleep(15000);
                         }
 
-                        object[] result = new object[2];
+                        object[] result = new object[3];
                         result[0] = file.Name;
-                        result[1] = GetBatchOutputSequence(file.Name, newestTime);
+                        result[1] = sequenceNo;
+                        result[2] = GetBatchOutputSequence(file.Name, newestTime);
 
                         eventArgs.Result = result;
                     };
