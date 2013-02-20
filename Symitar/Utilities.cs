@@ -81,7 +81,14 @@ namespace Symitar
 
         public static int ConvertTime(string timeStr)
         {
+            if(string.IsNullOrEmpty(timeStr))
+                throw new ArgumentException("timeStr");
+
             string[] tokens = timeStr.Split(':');
+
+            if(tokens.Length != 3)
+                throw new ArgumentException("Invalid time format", "timeStr");
+
             string seconds = tokens[2], minutes = tokens[1], hours = tokens[0];
 
             int currTime = int.Parse(seconds);
@@ -93,15 +100,18 @@ namespace Symitar
 
         public static DateTime ConvertTime(int time)
         {
+            if(time < 0)
+                throw new ArgumentOutOfRangeException("Time cannot be negative.", "time");
+
             int hours = 0, minutes = 0, seconds = 0;
 
-            while(time > 3600)
+            while(time >= 3600)
             {
                 hours++;
                 time -= 3600;
             }
 
-            while (time > 60)
+            while (time >= 60)
             {
                 minutes++;
                 time -= 60;
