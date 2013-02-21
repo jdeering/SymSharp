@@ -11,7 +11,17 @@ namespace Symitar
     {
         public delegate string FileRunPrompt(string prompt);
 
-        public delegate void FileRunStatus(int code, string description);
+        public enum RunState
+        {
+            Initializing,
+            Prompts,
+            Running,
+            Complete,
+            Failed,
+            Cancelled
+        }
+
+        public delegate void FileRunStatus(RunState state, object data);
 
         public bool IsFileRunning(int sequence)
         {
@@ -126,15 +136,13 @@ namespace Symitar
 
             _socket.Write("mm0\u001B");
 
-            callStatus(1, "Writing Commands...");
+            callStatus(RunState.Initializing, file);
             WaitForCommand("Input");
             _socket.Write("1\r");
 
-            callStatus(2, "Writing Commands...");
             WaitForCommand("Input");
             _socket.Write("11\r");
 
-            callStatus(3, "Writing Commands...");
             WaitForPrompt("Specification File");
             _socket.Write(file.Name + "\r");
             bool erroredOut = false;
@@ -146,7 +154,7 @@ namespace Symitar
                 {
                     if (cmd.Get("HelpCode") == "20301") break;
 
-                    callStatus(4, "Please Enter Prompts");
+                    callStatus(RunState.Prompts, file);
 
                     string result = callPrompt(cmd.Get("Prompt"));
                     if (result == null) //cancelled
@@ -155,18 +163,20 @@ namespace Symitar
                         cmd = _socket.ReadCommand();
                         while (cmd.Command != "Input")
                             cmd = _socket.ReadCommand();
+                        callStatus(RunState.Cancelled, file);
                         return RepgenRunResult.Cancelled();
                     }
 
                     _socket.Write(result.Trim() + '\r');
                 }
                 else if (cmd.Command == "Bell")
-                    callStatus(4, "Invalid Prompt Input, Please Re-Enter");
+                    callStatus(RunState.Prompts, "Invalid Prompt Input, Please Re-Enter");
                 else if ((cmd.Command == "Batch") && (cmd.Get("Text") == "No such file or directory"))
                 {
                     cmd = _socket.ReadCommand();
                     while (cmd.Command != "Input")
                         cmd = _socket.ReadCommand();
+                    callStatus(RunState.Failed, "File not found");
                     return RepgenRunResult.FileNotFound();
                 }
                 else if (cmd.Command == "SpecfileErr")
@@ -177,10 +187,11 @@ namespace Symitar
                     cmd = _socket.ReadCommand();
                     while (cmd.Command != "Input")
                         cmd = _socket.ReadCommand();
+                    callStatus(RunState.Failed, err);
                     return RepgenRunResult.Error(err);
                 }
                 else if ((cmd.Command == "Batch") && (cmd.Get("Action") == "DisplayLine"))
-                    callStatus(5, cmd.Get("Text"));
+                    callStatus(RunState.Initializing, cmd.Get("Text"));
             }
 
             while (cmd.Get("Prompt").Contains("Specification File"))
@@ -192,18 +203,16 @@ namespace Symitar
             WaitForPrompt("Batch Options");
             _socket.Write("0\r");
 
-            callStatus(4, "Getting Queue List");
             Dictionary<int, int> availableQueues = GetQueueList(cmd);
 
             if (queue < 0)
-                queue = GetOpenQueue(availableQueues, callStatus);
+                queue = GetOpenQueue(availableQueues);
 
             WaitForPrompt("Batch Queue");
             _socket.Write(queue + "\r");
 
             WaitForCommand("Input");
 
-            callStatus(8, "Getting Sequence Numbers");
             _socket.Write("1\r");
             cmd = _socket.ReadCommand();
             while (cmd.Command != "Input")
@@ -231,7 +240,7 @@ namespace Symitar
                 cmd = _socket.ReadCommand();
             }
 
-            callStatus(9, "Running..");
+            callStatus(RunState.Running, sequenceNo);
 
             if (Notify != null)
             {

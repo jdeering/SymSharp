@@ -23,16 +23,15 @@ namespace Symitar
             return -1;
         }
 
-        public ReportInfo FMRun(string inpTitle, FileMaintenanceType fmtype, FileRunStatus callStatus, int queue, RunWorkerCompletedEventHandler Notify = null)
+        public ReportInfo FMRun(string reportName, FileMaintenanceType fmtype, FileRunStatus callStatus, int queue, RunWorkerCompletedEventHandler Notify = null)
         {
-            callStatus(1, "Initializing...");
+            callStatus(RunState.Initializing, reportName);
             ISymCommand cmd;
             string outTitle = "FM - " + new Random().Next(8388608).ToString("D7");
 
             _socket.Write("mm0\u001B");
             cmd = WaitForCommand("Input");
 
-            callStatus(2, "Writing Commands...");
             _socket.Write("1\r");
             cmd = WaitForCommand("Input");
 
@@ -48,7 +47,7 @@ namespace Symitar
             _socket.Write("0\r"); //Undo a Posting? (NO)
             cmd = WaitForCommand("Input");
 
-            _socket.Write(inpTitle + "\r"); //Title of Batch Report Output to Use as FM Script
+            _socket.Write(reportName + "\r"); //Title of Batch Report Output to Use as FM Script
             cmd = WaitForCommand("Input");
 
             _socket.Write("1\r"); //Number of Search Days? (1)
@@ -70,10 +69,9 @@ namespace Symitar
 
             if (queue < 0)
             {
-                queue = GetOpenQueue(null, callStatus);
+                queue = GetOpenQueue(null);
             }
 
-            callStatus(7, "Writing Final Commands");
             _socket.Write(queue.ToString() + "\r"); //write queue
             cmd = WaitForCommand("Input");
 
@@ -81,7 +79,7 @@ namespace Symitar
             cmd = WaitForCommand("Input");
 
             //get queues again
-            callStatus(8, "Finding FM Sequence");
+            callStatus(RunState.Initializing, "Finding FM Sequence");
             cmd = new SymCommand("Misc");
             cmd.Set("InfoType", "BatchQueues");
             _socket.Write(cmd);
@@ -112,7 +110,7 @@ namespace Symitar
                 cmd = _socket.ReadCommand();
             }
 
-            callStatus(9, "Running..");
+            callStatus(RunState.Running, sequenceNo);
             
             if (Notify != null)
             {
@@ -125,7 +123,7 @@ namespace Symitar
                         Thread.Sleep(15000);
                     }
 
-                    eventArgs.Result = GetFileMaintenanceSequence(inpTitle);
+                    eventArgs.Result = GetFileMaintenanceSequence(reportName);
                 };
 
                 worker.RunWorkerCompleted += Notify;
@@ -162,7 +160,7 @@ namespace Symitar
             }
         }
 
-        private int GetOpenQueue(Dictionary<int, int> availableQueues, FileRunStatus callStatus)
+        private int GetOpenQueue(Dictionary<int, int> availableQueues)
         {
             int queue;
             ISymCommand cmd = new SymCommand();
@@ -171,7 +169,6 @@ namespace Symitar
                 availableQueues = GetQueueList(cmd);
 
             //get queue counts
-            callStatus(5, "Getting Queue Counts");
             cmd = new SymCommand("Misc");
             cmd.Set("InfoType", "BatchQueues");
             _socket.Write(cmd);
