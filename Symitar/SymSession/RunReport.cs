@@ -132,11 +132,10 @@ namespace Symitar
                 throw new InvalidOperationException("Cannot run a " + file.FileTypeString() + " file");
 
             ISymCommand cmd;
-            callStatus(0, "Initializing...");
+            callStatus(RunState.Initializing, file);
 
             _socket.Write("mm0\u001B");
 
-            callStatus(RunState.Initializing, file);
             WaitForCommand("Input");
             _socket.Write("1\r");
 
