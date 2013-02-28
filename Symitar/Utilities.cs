@@ -6,7 +6,7 @@ namespace Symitar
     public static class Utilities
     {
         private static readonly string[] FileTypeDescriptor = {"RepWriter", "Letter", "Help", "Report"};
-        private static readonly string[] FileFolder = {"REPWRITERSPECS", "LETTERSPECS", "HELPFILES", "REPORTS"};
+        private static readonly string[] FileFolder = {"REPWRITERSPECS", "LETTERSPECS", "HELPFILES", "REPORT"};
 
         public static DateTime ParseSystemTime(string date, string time)
         {
