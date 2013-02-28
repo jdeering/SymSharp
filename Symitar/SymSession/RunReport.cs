@@ -114,7 +114,7 @@ namespace Symitar
             return -1;
         }
 
-        public IEnumerable<int> GetReportSequences(int batchOutputSequence)
+        public List<int> GetReportSequences(int batchOutputSequence)
         {
             var file = new File(_socket.Server, SymDirectory.ToString(), batchOutputSequence.ToString(), FileType.Report, DateTime.Now,
                                 0);
@@ -122,8 +122,18 @@ namespace Symitar
 
             var sequences = (from line in lines where line.Contains("Seq:") && line.Contains("Title:") select int.Parse(line.Substring(7, 6))).ToList();
 
-            sequences.Sort();
             return sequences;
+        }
+
+        public List<string> GetReportTitles(int batchOutputSequence)
+        {
+            var file = new File(_socket.Server, SymDirectory.ToString(), batchOutputSequence.ToString(), FileType.Report, DateTime.Now,
+                                0);
+            var lines = FileRead(file).Split('\n');
+
+            var titles = (from line in lines where line.Contains("Seq:") && line.Contains("Title:") select line.Substring(line.IndexOf("Title:")+7)).ToList();
+
+            return titles;
         }
 
         public RepgenRunResult FileRun(File file, FileRunStatus callStatus, FileRunPrompt callPrompt, int queue, RunWorkerCompletedEventHandler Notify = null)
