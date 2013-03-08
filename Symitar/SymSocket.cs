@@ -98,7 +98,6 @@ namespace Symitar
                 IPAddress ipAddress;
                 bool parseResult = IPAddress.TryParse(server, out ipAddress);
 
-                LockSocket(5000);
 
                 if (_client == null) // Use SocketAdapter implementation as default ITcpAdapter
                     _client = new SocketAdapter();
@@ -107,14 +106,11 @@ namespace Symitar
             }
             catch (Exception ex)
             {
-                if (Active)
-                    UnlockSocket();
                 _lastError = "Unable to Connect to Server\n" + ex.Message;
                 return false;
             }
 
             _lastActivity = DateTime.Now;
-            UnlockSocket();
 
             return true;
         }
@@ -346,7 +342,6 @@ namespace Symitar
                             }
                             catch (Exception)
                             {
-                                UnlockSocket();
                                 Disconnect();
                             }
                         }
