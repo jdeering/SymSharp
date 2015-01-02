@@ -1,7 +1,7 @@
 ﻿using System;
 using FluentAssertions;
+using NSubstitute;
 using NUnit.Framework;
-using Rhino.Mocks;
 using Symitar.Interfaces;
 
 namespace Symitar.Tests
@@ -12,20 +12,22 @@ namespace Symitar.Tests
         [Test]
         public void Connect_AlreadyConnected_ThrowsInvalidOperation()
         {
-            var tcpMock = MockRepository.GenerateMock<ITcpAdapter>();
-            tcpMock.Stub(x => x.Connected).Return(true);
+            var tcpAdapterMock = Substitute.For<ITcpAdapter>();
+            tcpAdapterMock.Connected.Returns(true);
 
-            var socket = new SymSocket(tcpMock);
+            var socket = new SymSocket(tcpAdapterMock);
             Assert.Throws<InvalidOperationException>(() => socket.Connect("symitar", 23));
         }
 
         [Test]
         public void Connect_ClientConnectException_HasErrorMessage()
         {
-            var tcpMock = MockRepository.GenerateMock<ITcpAdapter>();
-            tcpMock.Stub(x => x.Connect("symitar", 23)).Throw(new InvalidOperationException());
+            var tcpAdapterMock = Substitute.For<ITcpAdapter>();
+            tcpAdapterMock
+                .When(x => x.Connect("symitar", 23))
+                .Do(x => { throw new InvalidOperationException(); });
 
-            var socket = new SymSocket(tcpMock);
+            var socket = new SymSocket(tcpAdapterMock);
             socket.Connect("symitar", 23);
             socket.Error.Should().Contain("Unable to Connect to Server");
         }
@@ -33,10 +35,12 @@ namespace Symitar.Tests
         [Test]
         public void Connect_ClientConnectException_ReturnsFalse()
         {
-            var tcpMock = MockRepository.GenerateMock<ITcpAdapter>();
-            tcpMock.Stub(x => x.Connect("symitar", 23)).Throw(new InvalidOperationException());
+            var tcpAdapterMock = Substitute.For<ITcpAdapter>();
+            tcpAdapterMock
+                .When(x => x.Connect("symitar", 23))
+                .Do(x => { throw new InvalidOperationException(); });
 
-            var socket = new SymSocket(tcpMock);
+            var socket = new SymSocket(tcpAdapterMock);
             bool result = socket.Connect("symitar", 23);
             result.Should().BeFalse();
         }
@@ -46,30 +50,6 @@ namespace Symitar.Tests
         {
             var socket = new SymSocket();
             Assert.Throws<ArgumentNullException>(() => socket.Connect("", 1));
-        }
-
-        [Test]
-        public void Connect_LockFails_HasError()
-        {
-            var tcpMock = MockRepository.GenerateMock<ITcpAdapter>();
-            var semaphoreMock = MockRepository.GenerateMock<ISocketSemaphore>();
-            semaphoreMock.Stub(x => x.WaitOne(5000)).Return(false);
-
-            var socket = new SymSocket(tcpMock, semaphoreMock);
-            socket.Connect("symitar", 23);
-            socket.Error.Should().Contain("Unable to Connect to Server");
-        }
-
-        [Test]
-        public void Connect_LockFails_ReturnsFalse()
-        {
-            var tcpMock = MockRepository.GenerateMock<ITcpAdapter>();
-            var semaphoreMock = MockRepository.GenerateMock<ISocketSemaphore>();
-            semaphoreMock.Stub(x => x.WaitOne(5000)).Return(false);
-
-            var socket = new SymSocket(tcpMock, semaphoreMock);
-            bool result = socket.Connect("symitar", 23);
-            result.Should().BeFalse();
         }
 
         [Test]
@@ -89,19 +69,19 @@ namespace Symitar.Tests
         [Test]
         public void Connect_SuccessfulConnectionWithIpAddress_CallsHostNameConnectOnAdapter()
         {
-            var tcpMock = MockRepository.GenerateMock<ITcpAdapter>();
+            var tcpAdapterMock = Substitute.For<ITcpAdapter>();
 
-            var socket = new SymSocket(tcpMock);
+            var socket = new SymSocket(tcpAdapterMock);
             socket.Connect("symitar", 23);
-            tcpMock.AssertWasCalled(x => x.Connect("symitar", 23));
+            tcpAdapterMock.Received().Connect("symitar", 23);
         }
 
         [Test]
         public void Connect_SuccessfulConnectionWithIpAddress_ReturnsTrue()
         {
-            var tcpMock = MockRepository.GenerateMock<ITcpAdapter>();
+            var tcpAdapterMock = Substitute.For<ITcpAdapter>();
 
-            var socket = new SymSocket(tcpMock);
+            var socket = new SymSocket(tcpAdapterMock);
             bool result = socket.Connect("127.0.0.1", 23);
             result.Should().BeTrue();
         }
@@ -109,9 +89,9 @@ namespace Symitar.Tests
         [Test]
         public void Connect_SuccessfulConnection_HasBlankError()
         {
-            var tcpMock = MockRepository.GenerateMock<ITcpAdapter>();
+            var tcpAdapterMock = Substitute.For<ITcpAdapter>();
 
-            var socket = new SymSocket(tcpMock);
+            var socket = new SymSocket(tcpAdapterMock);
             socket.Connect("symitar", 23);
             socket.Error.Should().BeBlank();
         }
@@ -119,9 +99,9 @@ namespace Symitar.Tests
         [Test]
         public void Connect_SuccessfulConnection_ReturnsTrue()
         {
-            var tcpMock = MockRepository.GenerateMock<ITcpAdapter>();
+            var tcpAdapterMock = Substitute.For<ITcpAdapter>();
 
-            var socket = new SymSocket(tcpMock);
+            var socket = new SymSocket(tcpAdapterMock);
             bool result = socket.Connect("symitar", 23);
             result.Should().BeTrue();
         }
@@ -136,11 +116,11 @@ namespace Symitar.Tests
         [Test]
         public void Disconnect_ClosesClient()
         {
-            var tcpMock = MockRepository.GenerateMock<ITcpAdapter>();
+            var tcpAdapterMock = Substitute.For<ITcpAdapter>();
 
-            var socket = new SymSocket(tcpMock);
+            var socket = new SymSocket(tcpAdapterMock);
             socket.Disconnect();
-            tcpMock.AssertWasCalled(x => x.Close());
+            tcpAdapterMock.Received().Close();
         }
 
         [Test]
@@ -150,7 +130,6 @@ namespace Symitar.Tests
                 () =>
                     {
                         var socket = new SymSocket();
-
                         socket.WaitFor();
                     }
                 );
