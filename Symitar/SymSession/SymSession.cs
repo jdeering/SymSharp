@@ -227,8 +227,6 @@ namespace Symitar
             ISymCommand cmd = _socket.ReadCommand();
             while (cmd.Command != "Input" || cmd.Get("HelpCode") == "10025")
             {
-                Console.WriteLine(cmd);
-
                 if (cmd.Command == "Input" && cmd.Get("HelpCode") == "10025")
                 {
                     _socket.Write("$WinHostSync$\r");

@@ -340,9 +340,10 @@ namespace Symitar
 
             startTime = DateTime.Now;
             cmd = _socket.ReadCommand();
-            while (cmd.Get("Action") != "DisplayEdit")
+            while (cmd.Get("Action") != "DisplayEdit" && cmd.Command != "SpecfileData")
             {
-                if ((DateTime.Now - startTime).TotalSeconds > 5)
+                var elapsedTime = DateTime.Now - startTime;
+                if (elapsedTime.TotalSeconds > 5)
                 {
                     throw new TimeoutException("Specfile Install Timeout");
                 }

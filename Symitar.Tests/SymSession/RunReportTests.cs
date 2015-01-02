@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using FluentAssertions;
+using NSubstitute;
 using NUnit.Framework;
-using Rhino.Mocks;
 using Symitar.Interfaces;
 
 namespace Symitar.Tests
@@ -22,9 +22,9 @@ namespace Symitar.Tests
         [Test]
         public void IsFileRunning_DoneImmediate_ReturnsFalse()
         {
-            var mockSocket = MockRepository.GenerateMock<ISymSocket>();
-            mockSocket.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("Misc", new Dictionary<string, string> {{"Done", ""}}));
+            var mockSocket = Substitute.For<ISymSocket>();
+            mockSocket.ReadCommand()
+                .Returns(new SymCommand("Misc", new Dictionary<string, string> {{"Done", ""}}));
 
             var session = new SymSession(mockSocket);
             session.IsFileRunning(1).Should().BeFalse();
@@ -40,16 +40,12 @@ namespace Symitar.Tests
         [Test]
         public void IsFileRunning_QueueEntryWithMatchingSeq_ReturnsTrue()
         {
-            var mockSocket = MockRepository.GenerateMock<ISymSocket>();
-            mockSocket.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("Misc",
-                                             new Dictionary<string, string>
-                                                 {
-                                                     {"Action", "QueueEntry"},
-                                                     {"Seq", "1"}
-                                                 })).Repeat.Once();
-            mockSocket.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("Misc", new Dictionary<string, string> {{"Done", ""}}));
+            var mockSocket = Substitute.For<ISymSocket>();
+            mockSocket.ReadCommand()
+                .Returns(
+                    new SymCommand("Misc", new Dictionary<string, string>{{"Action", "QueueEntry"},{"Seq", "1"}}),
+                    new SymCommand("Misc", new Dictionary<string, string> {{"Done", ""}})
+                );
 
             var session = new SymSession(mockSocket);
             session.IsFileRunning(1).Should().BeTrue();
@@ -58,16 +54,12 @@ namespace Symitar.Tests
         [Test]
         public void IsFileRunning_QueueEntryWithoutMatchingSeq_ReturnsTrue()
         {
-            var mockSocket = MockRepository.GenerateMock<ISymSocket>();
-            mockSocket.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("Misc",
-                                             new Dictionary<string, string>
-                                                 {
-                                                     {"Action", "QueueEntry"},
-                                                     {"Seq", "11"}
-                                                 })).Repeat.Once();
-            mockSocket.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("Misc", new Dictionary<string, string> {{"Done", ""}}));
+            var mockSocket = Substitute.For<ISymSocket>();
+            mockSocket.ReadCommand()
+                .Returns(
+                    new SymCommand("Misc",new Dictionary<string, string>{{"Action", "QueueEntry"},{"Seq", "11"}}),
+                    new SymCommand("Misc", new Dictionary<string, string> {{"Done", ""}})
+                );
 
             var session = new SymSession(mockSocket);
             session.IsFileRunning(1).Should().BeFalse();

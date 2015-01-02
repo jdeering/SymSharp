@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using FluentAssertions;
+using NSubstitute;
 using NUnit.Framework;
-using Rhino.Mocks;
 using Symitar.Interfaces;
 
 namespace Symitar.Tests
@@ -14,20 +14,16 @@ namespace Symitar.Tests
         [Test]
         public void FileCheck_ActionFileInfo_FailsCheck()
         {
-            var mockSocket = MockRepository.GenerateMock<ISymSocket>();
-            mockSocket.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("Check", new Dictionary<string, string> {{"Action", "Init"}}))
-                      .Repeat.Times(4);
-            mockSocket.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("Check",
-                                             new Dictionary<string, string>
-                                                 {
-                                                     {"Action", "FileInfo"},
-                                                     {"Line", "22"},
-                                                     {"Col", "1"}
-                                                 })).Repeat.Once();
-            mockSocket.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("Check", new Dictionary<string, string> {{"Action", "DisplayEdit"}}));
+            var mockSocket = Substitute.For<ISymSocket>();
+            mockSocket.ReadCommand()
+                      .Returns(
+                        new SymCommand("Check", new Dictionary<string, string> {{"Action", "Init"}}),
+                        new SymCommand("Check", new Dictionary<string, string> {{"Action", "Init"}}),
+                        new SymCommand("Check", new Dictionary<string, string> {{"Action", "Init"}}),
+                        new SymCommand("Check", new Dictionary<string, string> {{"Action", "Init"}}),
+                        new SymCommand("Check", new Dictionary<string, string> {{"Action", "FileInfo"},{"Line", "22"},{"Col", "1"}}),
+                        new SymCommand("Check", new Dictionary<string, string> {{"Action", "DisplayEdit"}})
+                        );
 
             var file = new File("symitar", "10", "FILE.TO.CHECK", FileType.RepGen, DateTime.Now, 110);
             var session = new SymSession(mockSocket, 10);
@@ -39,9 +35,9 @@ namespace Symitar.Tests
         [Test]
         public void FileCheck_ActionNoError_PassesCheck()
         {
-            var mockSocket = MockRepository.GenerateMock<ISymSocket>();
-            mockSocket.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("Check", new Dictionary<string, string> {{"Action", "NoError"}}));
+            var mockSocket = Substitute.For<ISymSocket>();
+            mockSocket.ReadCommand()
+                      .Returns(new SymCommand("Check", new Dictionary<string, string> {{"Action", "NoError"}}));
 
             var file = new File("symitar", "10", "FILE.TO.CHECK", FileType.RepGen, DateTime.Now, 110);
             var session = new SymSession(mockSocket, 10);
@@ -53,9 +49,9 @@ namespace Symitar.Tests
         [Test]
         public void FileCheck_CommandHasError_ThrowsFileNotFoundException()
         {
-            var mockSocket = MockRepository.GenerateMock<ISymSocket>();
-            mockSocket.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("Check", new Dictionary<string, string> {{"Error", ""}}));
+            var mockSocket = Substitute.For<ISymSocket>();
+            mockSocket.ReadCommand()
+                      .Returns(new SymCommand("Check", new Dictionary<string, string> {{"Error", ""}}));
 
             var file = new File("symitar", "10", "FILE.TO.CHECK", FileType.RepGen, DateTime.Now, 110);
             var session = new SymSession(mockSocket, 10);
@@ -65,9 +61,9 @@ namespace Symitar.Tests
         [Test]
         public void FileCheck_CommandHasWarning_ThrowsFileNotFoundException()
         {
-            var mockSocket = MockRepository.GenerateMock<ISymSocket>();
-            mockSocket.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("Check", new Dictionary<string, string> {{"Warning", ""}}));
+            var mockSocket = Substitute.For<ISymSocket>();
+            mockSocket.ReadCommand()
+                      .Returns(new SymCommand("Check", new Dictionary<string, string> {{"Warning", ""}}));
 
             var file = new File("symitar", "10", "FILE.TO.CHECK", FileType.RepGen, DateTime.Now, 110);
             var session = new SymSession(mockSocket, 10);
@@ -77,7 +73,7 @@ namespace Symitar.Tests
         [Test]
         public void FileCheck_LetterFile_ThrowsException()
         {
-            var mockSocket = MockRepository.GenerateMock<ISymSocket>();
+            var mockSocket = Substitute.For<ISymSocket>();
 
             var file = new File("symitar", "10", "FILE.TO.CHECK", FileType.Letter, DateTime.Now, 110);
             var session = new SymSession(mockSocket, 10);
@@ -87,9 +83,9 @@ namespace Symitar.Tests
         [Test]
         public void FileCheck_UnknownCommands_ThrowsException()
         {
-            var mockSocket = MockRepository.GenerateMock<ISymSocket>();
-            mockSocket.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("Check", new Dictionary<string, string> {{"Action", "Random"}}));
+            var mockSocket = Substitute.For<ISymSocket>();
+            mockSocket.ReadCommand()
+                      .Returns(new SymCommand("Check", new Dictionary<string, string> {{"Action", "Random"}}));
 
             var file = new File("symitar", "10", "FILE.TO.CHECK", FileType.RepGen, DateTime.Now, 110);
             var session = new SymSession(mockSocket, 10);
@@ -100,9 +96,9 @@ namespace Symitar.Tests
         [Test]
         public void FileDelete_CompletesSuccessfully_NoExceptions()
         {
-            var mockSocket = MockRepository.GenerateMock<ISymSocket>();
-            mockSocket.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("Rename", new Dictionary<string, string> {{"Done", ""}}));
+            var mockSocket = Substitute.For<ISymSocket>();
+            mockSocket.ReadCommand()
+                      .Returns(new SymCommand("Rename", new Dictionary<string, string> {{"Done", ""}}));
 
             var session = new SymSession(mockSocket, 10);
 
@@ -114,8 +110,8 @@ namespace Symitar.Tests
         {
             var file = new File("symitar", "000", "RandomFile", FileType.RepGen, DateTime.Now, 100);
 
-            var mockSocket = MockRepository.GenerateMock<ISymSocket>();
-            mockSocket.Stub(x => x.ReadCommand()).Return(new SymCommand("Unknown"));
+            var mockSocket = Substitute.For<ISymSocket>();
+            mockSocket.ReadCommand().Returns(new SymCommand("Unknown"));
 
             var session = new SymSession(mockSocket, 10);
 
@@ -127,9 +123,9 @@ namespace Symitar.Tests
         {
             var file = new File("symitar", "000", "RandomFile", FileType.RepGen, DateTime.Now, 100);
 
-            var mockSocket = MockRepository.GenerateMock<ISymSocket>();
-            mockSocket.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("Rename",
+            var mockSocket = Substitute.For<ISymSocket>();
+            mockSocket.ReadCommand()
+                      .Returns(new SymCommand("Rename",
                                              new Dictionary<string, string> {{"Status", "No such file or directory"}}));
 
             var session = new SymSession(mockSocket, 10);
@@ -142,9 +138,9 @@ namespace Symitar.Tests
         {
             var file = new File("symitar", "000", "RandomFile", FileType.RepGen, DateTime.Now, 100);
 
-            var mockSocket = MockRepository.GenerateMock<ISymSocket>();
-            mockSocket.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("Rename", new Dictionary<string, string> {{"Status", ""}}));
+            var mockSocket = Substitute.For<ISymSocket>();
+            mockSocket.ReadCommand()
+                      .Returns(new SymCommand("Rename", new Dictionary<string, string> {{"Status", ""}}));
 
             var session = new SymSession(mockSocket, 10);
 
@@ -156,18 +152,19 @@ namespace Symitar.Tests
         {
             var file = new File("symitar", "000", "RandomFile", FileType.RepGen, DateTime.Now, 100);
 
-            var mockSocket = MockRepository.GenerateMock<ISymSocket>();
-            mockSocket.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("FileList",
-                                             new Dictionary<string, string>
-                                                 {
-                                                     {"Name", "RandomFile"},
-                                                     {"Date", "01012013"},
-                                                     {"Time", "1153"},
-                                                     {"Size", "1123"},
-                                                 })).Repeat.Once();
-            mockSocket.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("FileList", new Dictionary<string, string> {{"Done", ""}}));
+            var mockSocket = Substitute.For<ISymSocket>();
+            mockSocket.ReadCommand()
+                .Returns(
+                    new SymCommand("FileList",
+                        new Dictionary<string, string>
+                            {
+                                {"Name", "RandomFile"},
+                                {"Date", "01012013"},
+                                {"Time", "1153"},
+                                {"Size", "1123"},
+                            }),
+                    new SymCommand("FileList", new Dictionary<string, string> {{"Done", ""}})
+                );
 
             var session = new SymSession(mockSocket, 10);
 
@@ -180,9 +177,9 @@ namespace Symitar.Tests
         {
             var file = new File("symitar", "000", "RandomFile", FileType.RepGen, DateTime.Now, 100);
 
-            var mockSocket = MockRepository.GenerateMock<ISymSocket>();
-            mockSocket.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("FileList", new Dictionary<string, string> {{"Done", ""}}));
+            var mockSocket = Substitute.For<ISymSocket>();
+            mockSocket.ReadCommand()
+                      .Returns(new SymCommand("FileList", new Dictionary<string, string> {{"Done", ""}}));
 
             var session = new SymSession(mockSocket, 10);
 
@@ -193,18 +190,18 @@ namespace Symitar.Tests
         [Test]
         public void FileExistsByName_FilesReturned_IsTrue()
         {
-            var mockSocket = MockRepository.GenerateMock<ISymSocket>();
-            mockSocket.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("FileList",
-                                             new Dictionary<string, string>
-                                                 {
-                                                     {"Name", "RandomFile"},
-                                                     {"Date", "01012013"},
-                                                     {"Time", "1153"},
-                                                     {"Size", "1123"},
-                                                 })).Repeat.Once();
-            mockSocket.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("FileList", new Dictionary<string, string> {{"Done", ""}}));
+            var mockSocket = Substitute.For<ISymSocket>();
+            mockSocket.ReadCommand()
+                .Returns(
+                    new SymCommand("FileList", new Dictionary<string, string>
+                        {
+                            {"Name", "RandomFile"},
+                            {"Date", "01012013"},
+                            {"Time", "1153"},
+                            {"Size", "1123"},
+                        }),
+                    new SymCommand("FileList", new Dictionary<string, string> {{"Done", ""}})
+                );
 
             var session = new SymSession(mockSocket, 10);
 
@@ -215,9 +212,9 @@ namespace Symitar.Tests
         [Test]
         public void FileExistsByName_NoFilesReturned_IsFalse()
         {
-            var mockSocket = MockRepository.GenerateMock<ISymSocket>();
-            mockSocket.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("FileList", new Dictionary<string, string> {{"Done", ""}}));
+            var mockSocket = Substitute.For<ISymSocket>();
+            mockSocket.ReadCommand()
+                      .Returns(new SymCommand("FileList", new Dictionary<string, string> {{"Done", ""}}));
 
             var session = new SymSession(mockSocket, 10);
 
@@ -228,28 +225,26 @@ namespace Symitar.Tests
         [Test]
         public void FileGet_HasMultipleMatches_ReturnsFirstFile()
         {
-            var mockSocket = MockRepository.GenerateMock<ISymSocket>();
-            mockSocket.Stub(x => x.Server).Return("symitar");
-            mockSocket.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("FileList",
-                                             new Dictionary<string, string>
+            var mockSocket = Substitute.For<ISymSocket>();
+            mockSocket.Server.Returns("symitar");
+            mockSocket.ReadCommand()
+                .Returns(
+                    new SymCommand("FileList", new Dictionary<string, string>
                                                  {
                                                      {"Name", "RandomFile"},
                                                      {"Date", "01012013"},
                                                      {"Time", "1153"},
                                                      {"Size", "1123"},
-                                                 })).Repeat.Once();
-            mockSocket.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("FileList",
-                                             new Dictionary<string, string>
+                                                 }),
+                    new SymCommand("FileList", new Dictionary<string, string>
                                                  {
                                                      {"Name", "RandomFile2"},
                                                      {"Date", "01012013"},
                                                      {"Time", "1153"},
                                                      {"Size", "1123"},
-                                                 })).Repeat.Once();
-            mockSocket.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("FileList", new Dictionary<string, string> {{"Done", ""}}));
+                                                 }),
+                    new SymCommand("FileList", new Dictionary<string, string> {{"Done", ""}})
+                );
 
             var expected = new File("symitar", "10", "RandomFile", FileType.RepGen, "01012013", "1153", 1123);
 
@@ -264,19 +259,20 @@ namespace Symitar.Tests
         [Test]
         public void FileGet_HasOneMatch_ReturnsFile()
         {
-            var mockSocket = MockRepository.GenerateMock<ISymSocket>();
-            mockSocket.Stub(x => x.Server).Return("symitar");
-            mockSocket.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("FileList",
-                                             new Dictionary<string, string>
-                                                 {
-                                                     {"Name", "RandomFile"},
-                                                     {"Date", "01012013"},
-                                                     {"Time", "1153"},
-                                                     {"Size", "1123"},
-                                                 })).Repeat.Once();
-            mockSocket.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("FileList", new Dictionary<string, string> {{"Done", ""}}));
+            var mockSocket = Substitute.For<ISymSocket>();
+            mockSocket.Server.Returns("symitar");
+            mockSocket.ReadCommand()
+                .Returns(
+                    new SymCommand("FileList",
+                                            new Dictionary<string, string>
+                                                {
+                                                    {"Name", "RandomFile"},
+                                                    {"Date", "01012013"},
+                                                    {"Time", "1153"},
+                                                    {"Size", "1123"},
+                                                }),
+                    new SymCommand("FileList", new Dictionary<string, string> {{"Done", ""}})
+                );
 
             var expected = new File("symitar", "10", "RandomFile", FileType.RepGen, "01012013", "1153", 1123);
 
@@ -291,9 +287,9 @@ namespace Symitar.Tests
         [Test]
         public void FileGet_NoMatches_ThrowsFileNotFound()
         {
-            var mockSocket = MockRepository.GenerateMock<ISymSocket>();
-            mockSocket.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("FileList", new Dictionary<string, string> {{"Done", ""}}));
+            var mockSocket = Substitute.For<ISymSocket>();
+            mockSocket.ReadCommand()
+                      .Returns(new SymCommand("FileList", new Dictionary<string, string> {{"Done", ""}}));
 
             var session = new SymSession(mockSocket, 10);
 
@@ -303,51 +299,46 @@ namespace Symitar.Tests
         [Test]
         public void FileInstall_ActionFileInfo_FailsCheck()
         {
-            var mockSocket = MockRepository.GenerateMock<ISymSocket>();
-            mockSocket.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("Check", new Dictionary<string, string> {{"Action", "Init"}}))
-                      .Repeat.Times(4);
-            mockSocket.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("Check",
-                                             new Dictionary<string, string>
-                                                 {
-                                                     {"Action", "FileInfo"},
-                                                     {"Line", "22"},
-                                                     {"Col", "1"}
-                                                 })).Repeat.Once();
-            mockSocket.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("Check", new Dictionary<string, string> {{"Action", "DisplayEdit"}}));
+            var mockSocket = Substitute.For<ISymSocket>();
+            mockSocket.ReadCommand()
+                .Returns(
+                    new SymCommand("Check", new Dictionary<string, string> {{"Action", "Init"}}),
+                    new SymCommand("Check", new Dictionary<string, string> {{"Action", "Init"}}),
+                    new SymCommand("Check", new Dictionary<string, string> {{"Action", "Init"}}),
+                    new SymCommand("Check", new Dictionary<string, string> {{"Action", "Init"}}),
+                    new SymCommand("Check", new Dictionary<string, string> {{"Action", "FileInfo"},{"Line", "22"},{"Col", "1"}}),
+                    new SymCommand("Check", new Dictionary<string, string> {{"Action", "DisplayEdit"}})
+                );
 
             var file = new File("symitar", "10", "FILE.TO.CHECK", FileType.RepGen, DateTime.Now, 110);
             var session = new SymSession(mockSocket, 10);
-            SpecfileResult result = session.FileInstall(file);
-
-            result.PassedCheck.Should().BeFalse();
+            session.FileInstall(file).PassedCheck.Should().BeFalse();
         }
 
         [Test]
         public void FileInstall_ActionNoError_PassesCheck()
         {
-            var mockSocket = MockRepository.GenerateMock<ISymSocket>();
-            mockSocket.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("Check", new Dictionary<string, string> {{"Action", "Init"}}))
-                      .Repeat.Times(4);
-            mockSocket.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("Check", new Dictionary<string, string> {{"Action", "DisplayEdit"}}));
+            var mockSocket = Substitute.For<ISymSocket>();
+            mockSocket.ReadCommand()
+                .Returns(
+                    new SymCommand("Check", new Dictionary<string, string> { { "Action", "Init" } }),
+                    new SymCommand("Check", new Dictionary<string, string> { { "Action", "Init" } }),
+                    new SymCommand("Check", new Dictionary<string, string> { { "Action", "Init" } }),
+                    new SymCommand("Check", new Dictionary<string, string> { { "Action", "Init" } }),
+                    new SymCommand("Check", new Dictionary<string, string> { { "Action", "DisplayEdit" } })
+                );
 
             var file = new File("symitar", "10", "FILE.TO.CHECK", FileType.RepGen, DateTime.Now, 110);
             var session = new SymSession(mockSocket, 10);
-            SpecfileResult result = session.FileInstall(file);
-
-            result.PassedCheck.Should().BeTrue();
+            session.FileInstall(file).PassedCheck.Should().BeTrue();
         }
 
         [Test]
         public void FileInstall_CommandHasError_ThrowsFileNotFoundException()
         {
-            var mockSocket = MockRepository.GenerateMock<ISymSocket>();
-            mockSocket.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("Check", new Dictionary<string, string> {{"Error", ""}}));
+            var mockSocket = Substitute.For<ISymSocket>();
+            mockSocket.ReadCommand()
+                      .Returns(new SymCommand("Check", new Dictionary<string, string> {{"Error", ""}}));
 
             var file = new File("symitar", "10", "FILE.TO.CHECK", FileType.RepGen, DateTime.Now, 110);
             var session = new SymSession(mockSocket, 10);
@@ -357,9 +348,9 @@ namespace Symitar.Tests
         [Test]
         public void FileInstall_CommandHasWarning_ThrowsFileNotFoundException()
         {
-            var mockSocket = MockRepository.GenerateMock<ISymSocket>();
-            mockSocket.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("Check", new Dictionary<string, string> {{"Warning", ""}}));
+            var mockSocket = Substitute.For<ISymSocket>();
+            mockSocket.ReadCommand()
+                      .Returns(new SymCommand("Check", new Dictionary<string, string> {{"Warning", ""}}));
 
             var file = new File("symitar", "10", "FILE.TO.CHECK", FileType.RepGen, DateTime.Now, 110);
             var session = new SymSession(mockSocket, 10);
@@ -369,7 +360,7 @@ namespace Symitar.Tests
         [Test]
         public void FileInstall_LetterFile_ThrowsException()
         {
-            var mockSocket = MockRepository.GenerateMock<ISymSocket>();
+            var mockSocket = Substitute.For<ISymSocket>();
 
             var file = new File("symitar", "10", "FILE.TO.CHECK", FileType.Letter, DateTime.Now, 110);
             var session = new SymSession(mockSocket, 10);
@@ -379,69 +370,65 @@ namespace Symitar.Tests
         [Test]
         public void FileInstall_SpecfileData_PassesCheck()
         {
-            var mockSocket = MockRepository.GenerateMock<ISymSocket>();
-            mockSocket.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("Check")).Repeat.Times(3);
-            mockSocket.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("SpecfileData", new Dictionary<string, string> {{"Size", "110"}}));
+            var mockSocket = Substitute.For<ISymSocket>();
+            mockSocket.ReadCommand()
+                .Returns(
+                    new SymCommand("Check", new Dictionary<string, string> { { "Action", "Init" } }),
+                    new SymCommand("Check", new Dictionary<string, string> { { "Action", "Init" } }),
+                    new SymCommand("Check", new Dictionary<string, string> { { "Action", "Init" } }),
+                    new SymCommand("SpecfileData", new Dictionary<string, string> { { "Size", "110" } })
+                );
 
             var file = new File("symitar", "10", "FILE.TO.CHECK", FileType.RepGen, DateTime.Now, 110);
             var session = new SymSession(mockSocket, 10);
-            SpecfileResult result = session.FileInstall(file);
-
-            result.PassedCheck.Should().BeTrue();
+            session.FileInstall(file).PassedCheck.Should().BeTrue();
         }
 
         [Test]
         public void FileList_HasMatches_CountIsCorrect()
         {
-            var mockSocket = MockRepository.GenerateMock<ISymSocket>();
-            mockSocket.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("FileList",
-                                             new Dictionary<string, string>
+            var mockSocket = Substitute.For<ISymSocket>();
+            mockSocket.ReadCommand()
+                .Returns(
+                    new SymCommand("FileList", new Dictionary<string, string>
                                                  {
                                                      {"Name", "RandomFile"},
                                                      {"Date", "01012013"},
                                                      {"Time", "1153"},
                                                      {"Size", "1123"},
-                                                 })).Repeat.Once();
-            mockSocket.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("FileList",
-                                             new Dictionary<string, string>
+                                                 }),
+                    new SymCommand("FileList", new Dictionary<string, string>
                                                  {
                                                      {"Name", "RandomFile2"},
                                                      {"Date", "01012013"},
                                                      {"Time", "1153"},
                                                      {"Size", "1123"},
-                                                 })).Repeat.Once();
-            mockSocket.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("FileList", new Dictionary<string, string> {{"Done", ""}}));
+                                                 }),
+                    new SymCommand("FileList", new Dictionary<string, string> { { "Done", "" } })
+                );
 
             var session = new SymSession(mockSocket, 10);
 
-            List<File> result = session.FileList("RandomFile+", FileType.RepGen);
-            result.Count.Should().Be(2);
+            session.FileList("RandomFile+", FileType.RepGen).Count.Should().Be(2);
         }
 
         [Test]
         public void FileList_NoMatches_CountIsZero()
         {
-            var mockSocket = MockRepository.GenerateMock<ISymSocket>();
-            mockSocket.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("FileList", new Dictionary<string, string> {{"Done", ""}}));
+            var mockSocket = Substitute.For<ISymSocket>();
+            mockSocket.ReadCommand().Returns(new SymCommand("FileList", new Dictionary<string, string> {{"Done", ""}}));
 
             var session = new SymSession(mockSocket, 10);
 
-            List<File> result = session.FileList("--", FileType.RepGen);
-            result.Count.Should().Be(0);
+            session.FileList("--", FileType.RepGen).Count.Should().Be(0);
         }
 
         [Test]
         public void FileRead_BlankReport_ReturnsEmptyString()
         {
-            var mockSocket = MockRepository.GenerateMock<ISymSocket>();
-            mockSocket.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("Read",
+            var mockSocket = Substitute.For<ISymSocket>();
+            mockSocket.ReadCommand()
+                      .Returns(new SymCommand("Read",
                                              new Dictionary<string, string> {{"Status", "Cannot view a blank report"}}));
 
             var session = new SymSession(mockSocket, 10);
@@ -452,21 +439,18 @@ namespace Symitar.Tests
         [Test]
         public void FileRead_LongFileName_ThrowException()
         {
-            var mockSocket = MockRepository.GenerateMock<ISymSocket>();
-            mockSocket.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("Read", new Dictionary<string, string> {{"Status", ""}}));
+            var mockSocket = Substitute.For<ISymSocket>();
+            mockSocket.ReadCommand().Returns(new SymCommand("Read", new Dictionary<string, string> {{"Status", ""}}));
 
             var session = new SymSession(mockSocket, 10);
-            Assert.Throws<Exception>(() => session.FileRead("ReallyLongFileName", FileType.Report), "Filename Too Long");
+            Assert.Throws<Exception>(() => session.FileRead("ReallyReallReallyReallyLongFileName", FileType.Report), "Filename Too Long");
         }
 
         [Test]
         public void FileRead_NoSuchFile_ThrowFileNotFound()
         {
-            var mockSocket = MockRepository.GenerateMock<ISymSocket>();
-            mockSocket.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("Read",
-                                             new Dictionary<string, string> {{"Status", "No such file or directory"}}));
+            var mockSocket = Substitute.For<ISymSocket>();
+            mockSocket.ReadCommand().Returns(new SymCommand("Read", new Dictionary<string, string> {{"Status", "No such file or directory"}}));
 
             var session = new SymSession(mockSocket, 10);
             Assert.Throws<FileNotFoundException>(() => session.FileRead("002356", FileType.Report));
@@ -475,11 +459,9 @@ namespace Symitar.Tests
         [Test]
         public void FileRename_CompletesSuccessfully_NoExceptions()
         {
-            var file = new File("symitar", "000", "RandomFile", FileType.RepGen, DateTime.Now, 100);
-
-            var mockSocket = MockRepository.GenerateMock<ISymSocket>();
-            mockSocket.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("Rename", new Dictionary<string, string> {{"Done", ""}}));
+            var mockSocket = Substitute.For<ISymSocket>();
+            mockSocket.ReadCommand()
+                      .Returns(new SymCommand("Rename", new Dictionary<string, string> {{"Done", ""}}));
 
             var session = new SymSession(mockSocket, 10);
 
@@ -489,10 +471,8 @@ namespace Symitar.Tests
         [Test]
         public void FileRename_NoStatusOrDone_ThrowsException()
         {
-            var file = new File("symitar", "000", "RandomFile", FileType.RepGen, DateTime.Now, 100);
-
-            var mockSocket = MockRepository.GenerateMock<ISymSocket>();
-            mockSocket.Stub(x => x.ReadCommand()).Return(new SymCommand("Unknown"));
+            var mockSocket = Substitute.For<ISymSocket>();
+            mockSocket.ReadCommand().Returns(new SymCommand("Unknown"));
 
             var session = new SymSession(mockSocket, 10);
 
@@ -502,12 +482,8 @@ namespace Symitar.Tests
         [Test]
         public void FileRename_StatusNoSuchFile_ThrowsFileNotFoundException()
         {
-            var file = new File("symitar", "000", "RandomFile", FileType.RepGen, DateTime.Now, 100);
-
-            var mockSocket = MockRepository.GenerateMock<ISymSocket>();
-            mockSocket.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("Rename",
-                                             new Dictionary<string, string> {{"Status", "No such file or directory"}}));
+            var mockSocket = Substitute.For<ISymSocket>();
+            mockSocket.ReadCommand().Returns(new SymCommand("Rename", new Dictionary<string, string> {{"Status", "No such file or directory"}}));
 
             var session = new SymSession(mockSocket, 10);
 
@@ -517,11 +493,8 @@ namespace Symitar.Tests
         [Test]
         public void FileRename_StatusUnknown_ThrowsFileNotFoundException()
         {
-            var file = new File("symitar", "000", "RandomFile", FileType.RepGen, DateTime.Now, 100);
-
-            var mockSocket = MockRepository.GenerateMock<ISymSocket>();
-            mockSocket.Stub(x => x.ReadCommand())
-                      .Return(new SymCommand("Rename", new Dictionary<string, string> {{"Status", ""}}));
+            var mockSocket = Substitute.For<ISymSocket>();
+            mockSocket.ReadCommand().Returns(new SymCommand("Rename", new Dictionary<string, string> {{"Status", ""}}));
 
             var session = new SymSession(mockSocket, 10);
 
