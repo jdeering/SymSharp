@@ -15,3 +15,7 @@ UpgradeLog.*
 *.nupkg
 
 packages
+
+# Coverage results
+TestResult.xml
+results.xml
