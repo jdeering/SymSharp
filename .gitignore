@@ -13,3 +13,5 @@ UpgradeLog.*
 *.DotSettings
 *.nuspec
 *.nupkg
+
+packages
