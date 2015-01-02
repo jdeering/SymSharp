@@ -1,5 +1,7 @@
 version: 1.4.{build}
 
+configuration: Release
+
 assembly_info:
   patch: true
   file: AssemblyInfo.*
