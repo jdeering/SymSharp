@@ -113,7 +113,6 @@ namespace Symitar
             else
             {
                 // If no data was recieved then the connection is probably dead
-                Console.WriteLine("Disconnected {0}", sock.RemoteEndPoint);
                 sock.Shutdown(SocketShutdown.Both);
                 sock.Close();
             }
