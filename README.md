@@ -1,5 +1,5 @@
 
-SymSharp
+SymSharp [![Build status](https://ci.appveyor.com/api/projects/status/gw8vmf7a1g8oh4r7/branch/master?svg=true)](https://ci.appveyor.com/project/jdeering/symsharp/branch/master)
 =====
 Symitar RAS Library in C#
 
