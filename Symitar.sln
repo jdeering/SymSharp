@@ -9,6 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Symitar.Tests", "Symitar.Te
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{73C81487-FA96-411F-A509-064C5A01BFAC}"
 	ProjectSection(SolutionItems) = preProject
+		appveyor.yml = appveyor.yml
 		GPL 3.txt = GPL 3.txt
 		README.md = README.md
 	EndProjectSection
