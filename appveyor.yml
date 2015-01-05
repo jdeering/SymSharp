@@ -22,7 +22,9 @@ build:
   project: Symitar.sln
   publish_nuget: true
   publish_nuget_symbols: true
-  verbosity: minimal
+  verbosity: minimal
+after_test:
+- msbuild Symitar.metaproj /t:Coverage
 
 deploy:
 - provider: NuGet
