@@ -3,6 +3,7 @@
 
   <!-- Application Configurations -->
   <PropertyGroup>
+    <Configuration Condition="'$(Configuration)'==''">Debug</Configuration>
     <NUnitPath>packages\NUnit.Runners.2.6.4\tools\</NUnitPath>
     <OpenCoverPath>packages\OpenCover.4.5.3522\</OpenCoverPath>
     <MSBuildCommunityTasksPath>$(MSBuildProjectDirectory)\..\Libs\msbuild\</MSBuildCommunityTasksPath>
@@ -24,7 +25,7 @@
 
   <Target Name="Coverage" DependsOnTargets="Clean;Compile">
     <!-- /domain=single is not support by the NUnit msbuild task, and it is required for OpenCover coverage test -->
-    <Exec Command="$(OpenCoverPath)OpenCover.Console.exe -register:user -target:'$(NUnitPath)nunit-console-x86.exe' -targetargs:'/noshadow $(TestAssembliesPath) /domain:single' -output:coverage.xml" />
+    <Exec Command="$(OpenCoverPath)OpenCover.Console.exe -register:user -target:&quot;$(NUnitPath)nunit-console-x86.exe&quot; -targetargs:&quot;/noshadow $(TestAssembliesPath) /domain:single&quot; -output:coverage.xml" />
     <Delete Files=".\coveragereport" />
   </Target>
 

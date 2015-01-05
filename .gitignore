@@ -19,3 +19,5 @@ packages
 # Coverage results
 TestResult.xml
 results.xml
+coverage.xml
+test-results.xml
