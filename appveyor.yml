@@ -19,7 +19,7 @@ nuget:
   disable_publish_on_pr: true
 
 build:
-  project: Symitar.metaproj
+  project: Symitar.sln
   publish_nuget: true
   publish_nuget_symbols: true
   verbosity: minimal
