@@ -93,7 +93,7 @@ namespace Symitar.Tests
 
             var socket = new SymSocket(tcpAdapterMock);
             socket.Connect("symitar", 23);
-            socket.Error.Should().BeBlank();
+            socket.Error.Should().BeNullOrEmpty();
         }
 
         [Test]

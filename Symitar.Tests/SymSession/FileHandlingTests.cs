@@ -433,7 +433,7 @@ namespace Symitar.Tests
 
             var session = new SymSession(mockSocket, 10);
             string result = session.FileRead("002356", FileType.Report);
-            result.Should().BeBlank();
+            result.Should().BeNullOrEmpty();
         }
 
         [Test]

@@ -86,7 +86,7 @@ namespace Symitar.Tests
         [Test]
         public void DecodeString_EmptyArray_ReturnsEmptyString()
         {
-            Utilities.DecodeString(new byte[0]).Should().BeBlank();
+            Utilities.DecodeString(new byte[0]).Should().BeNullOrEmpty();
         }
 
         [Test]

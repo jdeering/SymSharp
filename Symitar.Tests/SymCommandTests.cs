@@ -78,7 +78,7 @@ namespace Symitar.Tests
             var parameters = new Dictionary<string, string> {{"Initial", "1"}};
             var cmd = new SymCommand("Command", parameters, "data");
 
-            cmd.Data.Should().NotBeBlank();
+            cmd.Data.Should().NotBeNullOrEmpty();
         }
 
         [Test]
@@ -112,7 +112,7 @@ namespace Symitar.Tests
 
             cmd.Data = "File Data\u00FE";
 
-            cmd.GetFileData().Should().BeBlank();
+            cmd.GetFileData().Should().BeNullOrEmpty();
         }
 
         [Test]
@@ -122,7 +122,7 @@ namespace Symitar.Tests
 
             cmd.Data = "\u00FDFile Data";
 
-            cmd.GetFileData().Should().BeBlank();
+            cmd.GetFileData().Should().BeNullOrEmpty();
         }
 
         [Test]
@@ -141,7 +141,7 @@ namespace Symitar.Tests
         {
             var cmd = new SymCommand();
 
-            cmd.GetFileData().Should().BeBlank();
+            cmd.GetFileData().Should().BeNullOrEmpty();
         }
 
         [Test]
@@ -151,7 +151,7 @@ namespace Symitar.Tests
 
             cmd.Data = "RandomData";
 
-            cmd.GetFileData().Should().BeBlank();
+            cmd.GetFileData().Should().BeNullOrEmpty();
         }
 
         [Test]
@@ -161,7 +161,7 @@ namespace Symitar.Tests
 
             cmd.Data = "\u00FD\u00FE";
 
-            cmd.GetFileData().Should().BeBlank();
+            cmd.GetFileData().Should().BeNullOrEmpty();
         }
 
         [Test]
@@ -175,7 +175,7 @@ namespace Symitar.Tests
         public void Parse_WithNoTildes_ShouldHaveHaveBlankData()
         {
             SymCommand cmd = SymCommand.Parse("CommandMessage");
-            cmd.Data.Should().BeBlank();
+            cmd.Data.Should().BeNullOrEmpty();
         }
 
         [Test]
@@ -196,7 +196,7 @@ namespace Symitar.Tests
         public void Parse_WithParameterWithNoValue_ShouldHaveParameterValueBlank()
         {
             SymCommand cmd = SymCommand.Parse("CommandMessage~Parameter1");
-            cmd.Get("Parameter1").Should().BeBlank();
+            cmd.Get("Parameter1").Should().BeNullOrEmpty();
         }
 
         [Test]
@@ -217,7 +217,7 @@ namespace Symitar.Tests
         public void Parse_WithParameter_ShouldHaveEmptyData()
         {
             SymCommand cmd = SymCommand.Parse("CommandMessage");
-            cmd.Data.Should().BeBlank();
+            cmd.Data.Should().BeNullOrEmpty();
         }
 
         [Test]
