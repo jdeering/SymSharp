@@ -1,0 +1,17 @@
+language: csharp
+solution: Symitar.sln
+env:
+  global:
+  - secure: MufQiDUCdwC9Ey8tD3gBdXHZbenXsz5y9idG5RP6xoe/1wrWeMep2X/v25Aix/65urplhXk6XSGK1W/WbPdi+J+/elo3fG+Db9yIfargQISnc3NoJX4o1fD4J/uXuA9E7ZVmRYSCll1eRg/AYFEnjUI6uhs1cMhh7P7nHv8Xpqc=
+
+install:
+- nuget restore coveralls.net.sln
+addons:
+  coverity_scan:
+    project:
+      name: jdeering/SymSharp
+      description: Build submitted via Travis CI
+    notification_email: jason@deering.me
+    build_command_prepend: msbuild /t:Clean
+    build_command: msbuild /t:Rebuild
+    branch_pattern: coverity_scan
