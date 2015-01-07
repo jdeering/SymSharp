@@ -1,1 +1,0 @@
-packages\NUnit.Runners.2.6.4\tools\nunit-console-x86 /noshadow .\Symitar.Tests\bin\Release\Symitar.Tests.dll

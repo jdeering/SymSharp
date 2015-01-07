@@ -1,1 +1,0 @@
-packages\OpenCover.4.5.3522\OpenCover.Console.exe -register:user "-target:test.bat"
