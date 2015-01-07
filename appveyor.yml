@@ -22,9 +22,10 @@ build:
   project: Symitar.sln
   publish_nuget: true
   publish_nuget_symbols: true
-  verbosity: minimal
+  verbosity: minimal  
 after_test:
-- msbuild Symitar.metaproj /t:Coverage
+  - packages\OpenCover.4.5.3522\OpenCover.Console.exe -register:user -target:"packages\NUnit.Runners.2.6.4\tools\nunit-console.exe" -targetargs:"/noshadow /domain:single Coveralls.Tests\bin\%CONFIGURATION%\Coveralls.Tests.dll" -output:coverage.xml
+  - packages\coveralls.io.1.1.56\tools\coveralls.net.exe --opencover coverage.xml
 
 deploy:
 - provider: NuGet
