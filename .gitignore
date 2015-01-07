@@ -21,3 +21,6 @@ TestResult.xml
 results.xml
 coverage.xml
 test-results.xml
+
+cov-int
+cov-int.zip
