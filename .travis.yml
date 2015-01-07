@@ -2,8 +2,8 @@ language: csharp
 solution: Symitar.sln
 env:
   global:
-  - secure: MufQiDUCdwC9Ey8tD3gBdXHZbenXsz5y9idG5RP6xoe/1wrWeMep2X/v25Aix/65urplhXk6XSGK1W/WbPdi+J+/elo3fG+Db9yIfargQISnc3NoJX4o1fD4J/uXuA9E7ZVmRYSCll1eRg/AYFEnjUI6uhs1cMhh7P7nHv8Xpqc=
-
+  - secure: "C9FBBcoGzIoOd3HFZPFGTOdbyrHQAx/BgtFeGwwUU429P6lMW5o3r7ThHvwLRkP9WQIcqYIAu9L/BQF+FaBzlZR8EK8LBrBOTPmzIQr1brCT0YiQeYrKwquhqSFp8gJxDflRcwKWcoCuIxMm2+rDKv7BcJFR9ixh0Sp8TMuHRxU="
+  
 install:
 - nuget restore coveralls.net.sln
 addons:
