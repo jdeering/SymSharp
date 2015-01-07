@@ -15,6 +15,9 @@ branches:
   except:
     - coverity_scan
 
+cache:
+  - packages
+
 environment:
   COVERALLS_REPO_TOKEN:
     secure: yI/MhDA4hPGJ+e1WHNBNYzFbgVgNR7owW+/2n60jIGdwYROHLyYz+7vVQPTDCrK3
