@@ -64,6 +64,7 @@
   build:
     project: Symitar.sln
     publish_nuget: true
+    publish_nuget_symbols: false
     verbosity: minimal
 
   after_test:
