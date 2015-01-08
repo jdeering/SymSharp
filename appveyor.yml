@@ -1,8 +1,4 @@
 
-environment:
-  COVERALLS_REPO_TOKEN:
-    secure: yI/MhDA4hPGJ+e1WHNBNYzFbgVgNR7owW+/2n60jIGdwYROHLyYz+7vVQPTDCrK3
-
 -
   branches:
     only:
@@ -58,7 +54,7 @@ environment:
 
   environment:
     COVERALLS_REPO_TOKEN:
-      secure: fm7taq4Ao1Fu09OLM+KKQJlLwUsmDq9801njnfwhSTadQ3eAcYx+meW/LxK/4Mq0
+      secure: yI/MhDA4hPGJ+e1WHNBNYzFbgVgNR7owW+/2n60jIGdwYROHLyYz+7vVQPTDCrK3
 
   install:
     - nuget restore
