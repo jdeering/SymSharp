@@ -36,11 +36,6 @@ namespace Symitar
             Initialize(tcpClient);
         }
 
-        public SymSocket(ITcpAdapter tcpClient, ISocketSemaphore socketLock)
-        {
-            Initialize(tcpClient, socketLock);
-        }
-
         public SymSocket(string server, int port)
         {
             Initialize();
@@ -55,6 +50,7 @@ namespace Symitar
             Port = port;
         }
 
+        public ITcpAdapter TcpClient { get { return _client; } }
         public string Server { get; set; }
         public int Port { get; set; }
 
@@ -95,13 +91,6 @@ namespace Symitar
 
             try
             {
-                IPAddress ipAddress;
-                bool parseResult = IPAddress.TryParse(server, out ipAddress);
-
-
-                if (_client == null) // Use SocketAdapter implementation as default ITcpAdapter
-                    _client = new SocketAdapter();
-
                 _client.Connect(server, port);
             }
             catch (Exception ex)

@@ -93,6 +93,7 @@ namespace Symitar.Tests
 
             var socket = new SymSocket(tcpAdapterMock);
             socket.Connect("symitar", 23);
+
             socket.Error.Should().BeNullOrEmpty();
         }
 
@@ -102,8 +103,40 @@ namespace Symitar.Tests
             var tcpAdapterMock = Substitute.For<ITcpAdapter>();
 
             var socket = new SymSocket(tcpAdapterMock);
-            bool result = socket.Connect("symitar", 23);
-            result.Should().BeTrue();
+
+            socket.Connect("symitar", 23).Should().BeTrue();
+        }
+
+        [Test]
+        public void ConnectNoArgs_NoServerSet_ThrowsArgumentNull()
+        {
+            var tcpAdapterMock = Substitute.For<ITcpAdapter>();
+
+            var socket = new SymSocket(tcpAdapterMock);
+            socket.Port = 23;
+
+            Assert.Throws<ArgumentNullException>(() => socket.Connect());
+        }
+
+        [Test]
+        public void ConnectNoArgs_ZeroPort_ThrowsArgumentOutOfRange()
+        {
+            var socket = new SymSocket();
+            socket.Server = "symitar";
+
+            Assert.Throws<ArgumentOutOfRangeException>(() => socket.Connect());
+        }
+
+        [Test]
+        public void ConnectNoArgs_AfterSettingServerAndPort_ReturnsTrue()
+        {
+            var tcpAdapterMock = Substitute.For<ITcpAdapter>();
+
+            var socket = new SymSocket(tcpAdapterMock);
+            socket.Server = "symitar";
+            socket.Port = 23;
+
+            socket.Connect().Should().BeTrue();
         }
 
         [Test]
@@ -111,6 +144,30 @@ namespace Symitar.Tests
         {
             var socket = new SymSocket();
             Assert.Throws<ArgumentOutOfRangeException>(() => socket.Connect("symitar", 0));
+        }
+
+        [Test]
+        public void Connect_CallsUnderlyingClient()
+        {
+            var tcpAdapterMock = Substitute.For<ITcpAdapter>();
+            var socket = new SymSocket(tcpAdapterMock);
+
+            socket.Connect("symitar", 23);
+
+            tcpAdapterMock.Received().Connect("symitar", 23);
+        }
+
+        [Test]
+        public void ConnectNoArgs_CallsUnderlyingClient()
+        {
+            var tcpAdapterMock = Substitute.For<ITcpAdapter>();
+            var socket = new SymSocket(tcpAdapterMock);
+            socket.Server = "symitar";
+            socket.Port = 23;
+
+            socket.Connect();
+
+            tcpAdapterMock.Received().Connect("symitar", 23);
         }
 
         [Test]
