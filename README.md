@@ -26,15 +26,15 @@ SymSharp supports the following platforms:
 
 ## Versioning
 
-Visor will be maintained under the Semantic Versioning guidelines as much as possible. Releases will be numbered with the following format:
+SymSharp will be maintained under the Semantic Versioning guidelines as much as possible. Releases will be numbered with the following format:
 
-`<major>.<minor>.<patch>`
+`<major>.<minor>.<build>`
 
 and constructed with the following guidelines:
 
-* Breaking backward compatibility bumps the major (resetting the minor and patch)
-* New additions without breaking backward compatibility bumps the minor (resetting the patch)
-* Bug fixes and misc changes bump the patch
+* Breaking backward compatibility bumps the major (resetting the minor and build)
+* New additions without breaking backward compatibility bumps the minor (resetting the build)
+* Bug fixes and misc changes increase the build number
 
 For more information on SemVer, please visit http://semver.org/.
 
