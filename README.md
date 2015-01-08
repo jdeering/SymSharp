@@ -1,6 +1,7 @@
 
 SymSharp 
 =====
+[![GitHub version](https://badge.fury.io/gh/jdeering%2FSymSharp.svg)](http://badge.fury.io/gh/jdeering%2FSymSharp)
 [![Build status](https://ci.appveyor.com/api/projects/status/gw8vmf7a1g8oh4r7/branch/master?svg=true)](https://ci.appveyor.com/project/jdeering/symsharp/branch/master)
 [![Coverage Status](https://img.shields.io/coveralls/jdeering/SymSharp.svg)](https://coveralls.io/r/jdeering/SymSharp)
 [![Code Quality](https://scan.coverity.com/projects/3857/badge.svg)](https://scan.coverity.com/projects/3857)
