@@ -1,43 +1,77 @@
-version: 1.4.{build}
-
-configuration: Release
-
-assembly_info:
-  patch: true
-  file: AssemblyInfo.*
-  assembly_version: "{version}"
-  assembly_file_version: "{version}"
-  assembly_informational_version: "{version}"
-
-skip_tags: true
-
-branches:
-  except:
-    - coverity_scan
-
-cache:
-  - packages
 
 environment:
   COVERALLS_REPO_TOKEN:
     secure: yI/MhDA4hPGJ+e1WHNBNYzFbgVgNR7owW+/2n60jIGdwYROHLyYz+7vVQPTDCrK3
 
-nuget:
-  disable_publish_on_pr: true
+-
+  branches:
+    only:
+      - production
 
-build:
-  project: Symitar.sln
-  publish_nuget: true
-  publish_nuget_symbols: true
-  verbosity: minimal
+  version: 1.4.{build}
 
-after_test:
-  - packages\OpenCover.4.5.3522\OpenCover.Console.exe -register:user -target:"packages\NUnit.Runners.2.6.4\tools\nunit-console.exe" -targetargs:"/noshadow /domain:single Symitar.Tests\bin\%CONFIGURATION%\Symitar.Tests.dll" -output:coverage.xml
-  - packages\coveralls.io.1.1.56\tools\coveralls.net.exe --opencover coverage.xml
+  configuration: Release
 
-deploy:
-- provider: NuGet
-  api_key:
-    secure: 2fcbcVHpBbBN9Q9vnWfQaWBpTn0H/5Y10cBMVD1XJuJv5Tcyvcr63lsdAMHJyg61
-  on:
-    branch: master
+  assembly_info:
+    patch: true
+    file: AssemblyInfo.*
+    assembly_version: "{version}"
+    assembly_file_version: "{version}"
+    assembly_informational_version: "{version}"
+
+  nuget:
+    disable_publish_on_pr: true
+
+  install:
+    - nuget restore
+
+  build:
+    project: Symitar.sln
+    verbosity: quiet
+
+  deploy:
+  - provider: NuGet
+    api_key:
+      secure: 2fcbcVHpBbBN9Q9vnWfQaWBpTn0H/5Y10cBMVD1XJuJv5Tcyvcr63lsdAMHJyg61
+
+-
+  branches:
+    only:
+      - master
+
+  version: 1.4.{build}-beta
+
+  configuration: Debug
+
+  assembly_info:
+    patch: true
+    file: AssemblyInfo.*
+    assembly_version: "{version}"
+    assembly_file_version: "{version}"
+    assembly_informational_version: "{version}"
+
+  cache:
+    - packages
+
+  nuget:
+    disable_publish_on_pr: true
+
+  environment:
+    COVERALLS_REPO_TOKEN:
+      secure: fm7taq4Ao1Fu09OLM+KKQJlLwUsmDq9801njnfwhSTadQ3eAcYx+meW/LxK/4Mq0
+
+  install:
+    - nuget restore
+
+  build:
+    project: Symitar.sln
+    verbosity: minimal
+
+  after_test:
+    - packages\OpenCover.4.5.3522\OpenCover.Console.exe -register:user -target:"packages\NUnit.Runners.2.6.4\tools\nunit-console.exe" -targetargs:"/noshadow /domain:single Symitar.Tests\bin\%CONFIGURATION%\Symitar.Tests.dll" -output:coverage.xml
+    - packages\coveralls.io.1.1.56\tools\coveralls.net.exe --opencover coverage.xml
+
+  deploy:
+  - provider: NuGet
+    api_key:
+      secure: 2fcbcVHpBbBN9Q9vnWfQaWBpTn0H/5Y10cBMVD1XJuJv5Tcyvcr63lsdAMHJyg61
