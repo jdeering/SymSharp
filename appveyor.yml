@@ -23,6 +23,8 @@
 
   build:
     project: Symitar.sln
+    publish_nuget: true
+    publish_nuget_symbols: true
     verbosity: quiet
 
   deploy:
@@ -61,6 +63,8 @@
 
   build:
     project: Symitar.sln
+    publish_nuget: true
+    publish_nuget_symbols: true
     verbosity: minimal
 
   after_test:
