@@ -3,7 +3,6 @@
     public interface ISymSocket
     {
         bool Connected { get; }
-        bool Active { get; }
         string Error { get; }
         string Server { get; set; }
         int Port { get; set; }

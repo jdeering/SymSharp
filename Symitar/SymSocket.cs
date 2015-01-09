@@ -13,9 +13,7 @@ namespace Symitar
     {
         private const int DefaultTimeout = 5000;
         private const int KeepAliveInterval = 45000;
-        private bool _active;
         private ITcpAdapter _client;
-        private ISocketSemaphore _clientLock;
 
         private int _commandIndex;
         private List<ISymCommand> _commands;
@@ -36,13 +34,6 @@ namespace Symitar
             Initialize(tcpClient);
         }
 
-        public SymSocket(string server, int port)
-        {
-            Initialize();
-            Server = server;
-            Port = port;
-        }
-
         public SymSocket(ITcpAdapter tcpClient, string server, int port)
         {
             Initialize(tcpClient);
@@ -57,11 +48,6 @@ namespace Symitar
         public string Error
         {
             get { return _lastError; }
-        }
-
-        public bool Active
-        {
-            get { return _active; }
         }
 
         public bool Connected
@@ -280,8 +266,6 @@ namespace Symitar
 
             Server = "";
             _lastError = "";
-            _active = false;
-            _clientLock = new SocketLock();
         }
 
         private void KeepAlive()

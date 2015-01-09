@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Linq;
+using System.Net.Sockets;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -25,7 +26,8 @@ namespace Symitar.Console
                 _socket = null;
             }
 
-            _socket = new SymSocket("symitar", 23);
+            var adapter = new SocketAdapter();
+            _socket = new SymSocket(adapter, "symitar", 23);
             _session = new SymSession(_socket, 670);
             Login();
         }
