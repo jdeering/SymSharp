@@ -16,17 +16,6 @@ namespace Symitar
         private string _password;
         private string _userId;
 
-        public SymSession()
-        {
-            Initialize();
-        }
-
-        public SymSession(int symDirectory)
-        {
-            Initialize();
-            SymDirectory = symDirectory;
-        }
-
         public SymSession(ISymSocket socket)
         {
             Initialize();
@@ -38,11 +27,6 @@ namespace Symitar
             Initialize();
             _socket = socket;
             SymDirectory = symDirectory;
-        }
-
-        public ISymSocket Socket
-        {
-            get { return _socket; }
         }
 
         public int SymDirectory { get; set; }
@@ -90,13 +74,10 @@ namespace Symitar
 
             if (_socket == null)
             {
-                _socket = new SymSocket(server, port);
-                return _socket.Connect();
+                _socket = new SymSocket();
             }
-            else
-            {
-                return _socket.Connect(server, port);
-            }
+
+            return _socket.Connect(server, port);
         }
 
         public void Disconnect()
@@ -105,7 +86,7 @@ namespace Symitar
                 _socket.Disconnect();
         }
 
-        private void Reconnect()
+        public void Reconnect()
         {
             Disconnect();
             Connect(_server, _port);
@@ -171,7 +152,7 @@ namespace Symitar
             {
                 _socket.KeepAliveStart();
             }
-            catch (Exception)
+            catch
             {
                 return false;
             }

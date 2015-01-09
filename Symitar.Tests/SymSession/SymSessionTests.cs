@@ -40,7 +40,8 @@ namespace Symitar.Tests
         [Test]
         public void Connect_NegativePort_ThrowsArgumentException()
         {
-            var session = new SymSession();
+            var mockSocket = Substitute.For<ISymSocket>();
+            var session = new SymSession(mockSocket);
             Assert.Throws<ArgumentOutOfRangeException>(
                 () => session.Connect("symitar", -1));
         }
@@ -56,7 +57,8 @@ namespace Symitar.Tests
         [Test]
         public void Connect_ZeroPort_ThrowsArgumentException()
         {
-            var session = new SymSession();
+            var mockSocket = Substitute.For<ISymSocket>();
+            var session = new SymSession(mockSocket);
             Assert.Throws<ArgumentOutOfRangeException>(
                 () => session.Connect("symitar", 0));
         }
@@ -73,7 +75,8 @@ namespace Symitar.Tests
         [Test]
         public void Constructor_WithSymDir_HasCorrectSymDir()
         {
-            var session = new SymSession(10);
+            var mockSocket = Substitute.For<ISymSocket>();
+            var session = new SymSession(mockSocket, 10);
             session.SymDirectory.Should().Be(10);
         }
 
@@ -348,6 +351,20 @@ namespace Symitar.Tests
         }
 
         [Test]
+        public void Login_CommandPromptNoWait_ReturnsTrue()
+        {
+            var socketMock = Substitute.For<ISymSocket>();
+            socketMock.Connected.Returns(true);
+            socketMock.WaitFor("Password:", "[c").Returns(0);
+            socketMock.WaitFor(":").Returns(0);
+            socketMock.Read().Returns("Password:", "[c");
+            socketMock.ReadCommand().Returns(new SymCommand("Input", new Dictionary<string, string> { { "HelpCode", "10025" } }));
+
+            var session = new SymSession(socketMock, 10);
+            session.Login("bob", "dole", "bobdole").Should().BeTrue();
+        }
+
+        [Test]
         public void Login_Successful_StartsKeepAliveOnSocket()
         {
             var socketMock = Substitute.For<ISymSocket>();
@@ -360,6 +377,34 @@ namespace Symitar.Tests
             var session = new SymSession(socketMock, 10);
             session.Login("bob", "dole", "bobdole");
             socketMock.Received().KeepAliveStart();
+        }
+
+        [Test]
+        public void Login_SocketKeepAliveException_ReturnsFalse()
+        {
+            var socketMock = Substitute.For<ISymSocket>();
+            socketMock.Connected.Returns(true);
+            socketMock.WaitFor("Password:", "[c").Returns(0);
+            socketMock.WaitFor(":").Returns(0);
+            socketMock.Read().Returns("Password:", ":");
+            socketMock.ReadCommand().Returns(new SymCommand("Input", new Dictionary<string, string> { { "HelpCode", "10025" } }));
+            socketMock.When(x => x.KeepAliveStart()).Do(x => { throw new Exception(); });
+
+            var session = new SymSession(socketMock, 10);
+            session.Login("bob", "dole", "bobdole").Should().BeFalse();
+        }
+
+        [Test]
+        public void Reconnect_CallsDisconnectAndConnect()
+        {
+            var socketMock = Substitute.For<ISymSocket>();
+            var session = new SymSession(socketMock, 10);
+            session.Connect("symitar", 23);
+
+            session.Reconnect();
+
+            socketMock.Received().Disconnect();
+            socketMock.Received().Connect("symitar", 23);
         }
     }
 }

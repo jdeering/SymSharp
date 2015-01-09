@@ -284,34 +284,6 @@ namespace Symitar
             _clientLock = new SocketLock();
         }
 
-        private void Initialize(ITcpAdapter tcpClient, ISocketSemaphore semaphore)
-        {
-            _data = "";
-            _commandIndex = -1;
-            _commands = new List<ISymCommand>();
-            _client = tcpClient;
-            _keepAliveThread = null;
-            _keepAliveActive = false;
-
-            Server = "";
-            _lastError = "";
-            _active = false;
-            _clientLock = semaphore;
-        }
-
-        private void LockSocket(int timeout)
-        {
-            if (!_clientLock.WaitOne(timeout))
-                throw new Exception("Unable to Obtain Socket Lock");
-            _active = true;
-        }
-
-        private void UnlockSocket()
-        {
-            _active = false;
-            _clientLock.Release();
-        }
-
         private void KeepAlive()
         {
             byte[] wakeCmd = Utilities.EncodeString((new SymCommand("WakeUp")).ToString());

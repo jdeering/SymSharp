@@ -10,5 +10,6 @@
         bool HasParameter(string param);
         void Set(string param, string value);
         string Get(string param);
+        string ToString();
     }
 }
