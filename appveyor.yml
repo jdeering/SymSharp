@@ -4,7 +4,7 @@
     only:
       - production
 
-  version: 1.4.{build}
+  version: 2.0.{build}
 
   configuration: Release
 
@@ -37,7 +37,7 @@
     only:
       - master
 
-  version: 1.4.{build}-beta
+  version: 2.0.{build}-beta
 
   configuration: Debug
 
