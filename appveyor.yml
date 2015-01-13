@@ -4,7 +4,7 @@
     only:
       - production
 
-  version: 2.0.{build}
+  version: 2.0.0
 
   configuration: Release
 
@@ -35,9 +35,9 @@
 -
   branches:
     only:
-      - master
+      - beta
 
-  version: 2.0.{build}-beta
+  version: 2.0.1-beta
 
   configuration: Debug
 
@@ -53,6 +53,39 @@
 
   nuget:
     disable_publish_on_pr: true
+
+  install:
+    - nuget restore
+
+  build:
+    project: Symitar.sln
+    publish_nuget: true
+    publish_nuget_symbols: false
+    verbosity: quiet
+
+  deploy:
+  - provider: NuGet
+    api_key:
+      secure: 2fcbcVHpBbBN9Q9vnWfQaWBpTn0H/5Y10cBMVD1XJuJv5Tcyvcr63lsdAMHJyg61
+	  
+-
+  branches:
+    only:
+      - master
+
+  version: 2.0.1-alpha.{build}
+
+  configuration: Debug
+
+  assembly_info:
+    patch: true
+    file: AssemblyInfo.*
+    assembly_version: "{version}"
+    assembly_file_version: "{version}"
+    assembly_informational_version: "{version}"
+
+  cache:
+    - packages
 
   environment:
     COVERALLS_REPO_TOKEN:
@@ -70,8 +103,3 @@
   after_test:
     - packages\OpenCover.4.5.3522\OpenCover.Console.exe -register:user -filter:"+[Symitar*]* -[Symitar.Console*]*" -excludebyattribute:"ExcludeFromCodeCoverage" -hideskipped:All -target:"packages\NUnit.Runners.2.6.4\tools\nunit-console.exe" -targetargs:"/noshadow /domain:single Symitar.Tests\bin\%CONFIGURATION%\Symitar.Tests.dll" -output:coverage.xml
     - packages\coveralls.io.1.1.60\tools\coveralls.net.exe --opencover coverage.xml
-
-  deploy:
-  - provider: NuGet
-    api_key:
-      secure: 2fcbcVHpBbBN9Q9vnWfQaWBpTn0H/5Y10cBMVD1XJuJv5Tcyvcr63lsdAMHJyg61
