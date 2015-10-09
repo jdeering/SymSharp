@@ -1,6 +1,7 @@
 
 SymSharp 
 =====
+[![GitHub version](https://badge.fury.io/gh/jdeering%2FSymSharp.svg)](http://badge.fury.io/gh/jdeering%2FSymSharp)
 [![Build status](https://ci.appveyor.com/api/projects/status/gw8vmf7a1g8oh4r7/branch/master?svg=true)](https://ci.appveyor.com/project/jdeering/symsharp/branch/master)
 [![Coverage Status](https://img.shields.io/coveralls/jdeering/SymSharp.svg)](https://coveralls.io/r/jdeering/SymSharp)
 [![Code Quality](https://scan.coverity.com/projects/3857/badge.svg)](https://scan.coverity.com/projects/3857)
@@ -26,15 +27,15 @@ SymSharp supports the following platforms:
 
 ## Versioning
 
-Visor will be maintained under the Semantic Versioning guidelines as much as possible. Releases will be numbered with the following format:
+SymSharp will be maintained under the Semantic Versioning guidelines as much as possible. Releases will be numbered with the following format:
 
-`<major>.<minor>.<patch>`
+`<major>.<minor>.<build>`
 
 and constructed with the following guidelines:
 
-* Breaking backward compatibility bumps the major (resetting the minor and patch)
-* New additions without breaking backward compatibility bumps the minor (resetting the patch)
-* Bug fixes and misc changes bump the patch
+* Breaking backward compatibility bumps the major (resetting the minor and build)
+* New additions without breaking backward compatibility bumps the minor (resetting the build)
+* Bug fixes and misc changes increase the build number
 
 For more information on SemVer, please visit http://semver.org/.
 

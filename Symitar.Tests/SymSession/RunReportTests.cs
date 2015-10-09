@@ -14,8 +14,9 @@ namespace Symitar.Tests
         public void FileRun_LetterFile_ThrowsException()
         {
             var file = new File("symitar", "10", "RandomFile", FileType.Letter, DateTime.Now, 10);
+            var mockSocket = Substitute.For<ISymSocket>();
+            var session = new SymSession(mockSocket, 10);
 
-            var session = new SymSession(10);
             Assert.Throws<InvalidOperationException>(() => session.FileRun(file, null, null, -1));
         }
 
@@ -33,7 +34,8 @@ namespace Symitar.Tests
         [Test]
         public void IsFileRunning_NegativeSequence_ThrowsOutOfRange()
         {
-            var session = new SymSession();
+            var mockSocket = Substitute.For<ISymSocket>();
+            var session = new SymSession(mockSocket);
             Assert.Throws<ArgumentOutOfRangeException>(() => session.IsFileRunning(-1));
         }
 
@@ -68,7 +70,9 @@ namespace Symitar.Tests
         [Test]
         public void IsFileRunning_ZeroSequence_ThrowsOutOfRange()
         {
-            var session = new SymSession();
+            var mockSocket = Substitute.For<ISymSocket>();
+            var session = new SymSession(mockSocket);
+
             Assert.Throws<ArgumentOutOfRangeException>(() => session.IsFileRunning(0));
         }
     }

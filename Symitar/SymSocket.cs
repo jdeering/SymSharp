@@ -13,9 +13,7 @@ namespace Symitar
     {
         private const int DefaultTimeout = 5000;
         private const int KeepAliveInterval = 45000;
-        private bool _active;
         private ITcpAdapter _client;
-        private ISocketSemaphore _clientLock;
 
         private int _commandIndex;
         private List<ISymCommand> _commands;
@@ -36,18 +34,6 @@ namespace Symitar
             Initialize(tcpClient);
         }
 
-        public SymSocket(ITcpAdapter tcpClient, ISocketSemaphore socketLock)
-        {
-            Initialize(tcpClient, socketLock);
-        }
-
-        public SymSocket(string server, int port)
-        {
-            Initialize();
-            Server = server;
-            Port = port;
-        }
-
         public SymSocket(ITcpAdapter tcpClient, string server, int port)
         {
             Initialize(tcpClient);
@@ -55,17 +41,13 @@ namespace Symitar
             Port = port;
         }
 
+        public ITcpAdapter TcpClient { get { return _client; } }
         public string Server { get; set; }
         public int Port { get; set; }
 
         public string Error
         {
             get { return _lastError; }
-        }
-
-        public bool Active
-        {
-            get { return _active; }
         }
 
         public bool Connected
@@ -95,13 +77,6 @@ namespace Symitar
 
             try
             {
-                IPAddress ipAddress;
-                bool parseResult = IPAddress.TryParse(server, out ipAddress);
-
-
-                if (_client == null) // Use SocketAdapter implementation as default ITcpAdapter
-                    _client = new SocketAdapter();
-
                 _client.Connect(server, port);
             }
             catch (Exception ex)
@@ -291,36 +266,6 @@ namespace Symitar
 
             Server = "";
             _lastError = "";
-            _active = false;
-            _clientLock = new SocketLock();
-        }
-
-        private void Initialize(ITcpAdapter tcpClient, ISocketSemaphore semaphore)
-        {
-            _data = "";
-            _commandIndex = -1;
-            _commands = new List<ISymCommand>();
-            _client = tcpClient;
-            _keepAliveThread = null;
-            _keepAliveActive = false;
-
-            Server = "";
-            _lastError = "";
-            _active = false;
-            _clientLock = semaphore;
-        }
-
-        private void LockSocket(int timeout)
-        {
-            if (!_clientLock.WaitOne(timeout))
-                throw new Exception("Unable to Obtain Socket Lock");
-            _active = true;
-        }
-
-        private void UnlockSocket()
-        {
-            _active = false;
-            _clientLock.Release();
         }
 
         private void KeepAlive()
